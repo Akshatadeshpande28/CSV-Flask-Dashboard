@@ -28,7 +28,7 @@ def index():
 
             columns = df.columns.tolist()
 
-            # Summary stats
+            # Summary statistics
             summary = df.describe().to_html(classes="table table-striped")
 
             # Plot numeric columns
@@ -41,12 +41,9 @@ def index():
                 plt.savefig(chart_path)
                 plt.close()
 
-    return render_template(
-        "index.html",
-        summary=summary,
-        chart=chart_path,
-        columns=columns
-    )
+    # 👇 THIS IS THE IMPORTANT LINE
+    return render_template("index.html", summary=summary, chart=chart_path, columns=columns)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
