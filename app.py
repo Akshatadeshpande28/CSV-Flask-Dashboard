@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.io as pio
 import seaborn as sns
+import matplotlib.pyplot as plt
 import os
 
 app = Flask(__name__)
@@ -12,11 +14,10 @@ STATIC_FOLDER = "static"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(STATIC_FOLDER, exist_ok=True)
 
-# Store dataset globally (simple approach)
 df_global = None
 
 
-# 🤖 AI Insights Function
+# 🤖 AI Insights
 def generate_ai_insights(df):
     insights = []
 
@@ -24,8 +25,6 @@ def generate_ai_insights(df):
 
     if not numeric_cols.empty:
         corr = numeric_cols.corr()
-
-        # Strongest correlation
         max_corr = corr.unstack().sort_values(ascending=False)
         max_corr = max_corr[max_corr < 1]
 
@@ -33,12 +32,10 @@ def generate_ai_insights(df):
             pair = max_corr.idxmax()
             insights.append(f"Strong relationship between {pair[0]} and {pair[1]}.")
 
-    # Missing values
     missing = df.isnull().sum().sum()
     if missing > 0:
         insights.append(f"Dataset contains {missing} missing values.")
 
-    # Dataset size
     insights.append(f"Dataset has {df.shape[0]} rows and {df.shape[1]} columns.")
 
     return " ".join(insights)
@@ -49,30 +46,31 @@ def index():
     global df_global
 
     summary = None
-    chart_path = None
-    heatmap_path = None
     columns = None
+    heatmap_path = None
     ai_insights = None
+    plot_html = None
 
     if request.method == "POST":
 
-        # 📂 File Upload
+        # Upload
         file = request.files.get("file")
         if file:
             filepath = os.path.join(UPLOAD_FOLDER, file.filename)
             file.save(filepath)
-
             df_global = pd.read_csv(filepath)
 
-        # If data exists
         if df_global is not None:
             df = df_global
             columns = df.columns.tolist()
 
-            # 📊 Summary Stats
+            # Summary
             summary = df.describe().to_html(classes="table table-striped")
 
-            # 🔥 Heatmap
+            # AI Insights
+            ai_insights = generate_ai_insights(df)
+
+            # Heatmap
             numeric_cols = df.select_dtypes(include="number")
             if not numeric_cols.empty:
                 plt.figure(figsize=(8, 6))
@@ -81,27 +79,34 @@ def index():
                 plt.savefig(heatmap_path)
                 plt.close()
 
-            # 🤖 AI Insights
-            ai_insights = generate_ai_insights(df)
-
-        # 📈 Scatter Plot
+        # Chart Inputs
         x_col = request.form.get("x_col")
         y_col = request.form.get("y_col")
+        chart_type = request.form.get("chart_type")
 
-        if df_global is not None and x_col and y_col:
-            plt.figure()
-            df_global.plot(kind="scatter", x=x_col, y=y_col)
-            chart_path = os.path.join(STATIC_FOLDER, "chart.png")
-            plt.savefig(chart_path)
-            plt.close()
+        if df_global is not None and chart_type:
+
+            if chart_type == "scatter":
+                fig = px.scatter(df_global, x=x_col, y=y_col)
+
+            elif chart_type == "bar":
+                fig = px.bar(df_global, x=x_col, y=y_col)
+
+            elif chart_type == "line":
+                fig = px.line(df_global, x=x_col, y=y_col)
+
+            elif chart_type == "hist":
+                fig = px.histogram(df_global, x=y_col)
+
+            plot_html = pio.to_html(fig, full_html=False)
 
     return render_template(
         "index.html",
         summary=summary,
-        chart=chart_path,
-        heatmap=heatmap_path,
         columns=columns,
-        ai_insights=ai_insights
+        heatmap=heatmap_path,
+        ai_insights=ai_insights,
+        plot_html=plot_html
     )
 
 
