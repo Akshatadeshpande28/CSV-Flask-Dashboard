@@ -12,7 +12,37 @@ STATIC_FOLDER = "static"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(STATIC_FOLDER, exist_ok=True)
 
+# Store dataset globally (simple approach)
 df_global = None
+
+
+# 🤖 AI Insights Function
+def generate_ai_insights(df):
+    insights = []
+
+    numeric_cols = df.select_dtypes(include="number")
+
+    if not numeric_cols.empty:
+        corr = numeric_cols.corr()
+
+        # Strongest correlation
+        max_corr = corr.unstack().sort_values(ascending=False)
+        max_corr = max_corr[max_corr < 1]
+
+        if not max_corr.empty:
+            pair = max_corr.idxmax()
+            insights.append(f"Strong relationship between {pair[0]} and {pair[1]}.")
+
+    # Missing values
+    missing = df.isnull().sum().sum()
+    if missing > 0:
+        insights.append(f"Dataset contains {missing} missing values.")
+
+    # Dataset size
+    insights.append(f"Dataset has {df.shape[0]} rows and {df.shape[1]} columns.")
+
+    return " ".join(insights)
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -22,10 +52,11 @@ def index():
     chart_path = None
     heatmap_path = None
     columns = None
+    ai_insights = None
 
     if request.method == "POST":
 
-        # Upload file
+        # 📂 File Upload
         file = request.files.get("file")
         if file:
             filepath = os.path.join(UPLOAD_FOLDER, file.filename)
@@ -33,14 +64,15 @@ def index():
 
             df_global = pd.read_csv(filepath)
 
+        # If data exists
         if df_global is not None:
             df = df_global
             columns = df.columns.tolist()
 
-            # Summary
+            # 📊 Summary Stats
             summary = df.describe().to_html(classes="table table-striped")
 
-            # Heatmap
+            # 🔥 Heatmap
             numeric_cols = df.select_dtypes(include="number")
             if not numeric_cols.empty:
                 plt.figure(figsize=(8, 6))
@@ -49,7 +81,10 @@ def index():
                 plt.savefig(heatmap_path)
                 plt.close()
 
-        # Column-based chart
+            # 🤖 AI Insights
+            ai_insights = generate_ai_insights(df)
+
+        # 📈 Scatter Plot
         x_col = request.form.get("x_col")
         y_col = request.form.get("y_col")
 
@@ -65,8 +100,10 @@ def index():
         summary=summary,
         chart=chart_path,
         heatmap=heatmap_path,
-        columns=columns
+        columns=columns,
+        ai_insights=ai_insights
     )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
