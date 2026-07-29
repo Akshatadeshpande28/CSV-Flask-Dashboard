@@ -1,8 +1,12 @@
 Flask
+gunicorn
 pandas
 numpy
 plotly
-seaborn
 matplotlib
+seaborn
 openpyxl
-gunicorn
+Flask-SQLAlchemy
+Flask-Login
+psycopg2-binary
+Werkzeug
