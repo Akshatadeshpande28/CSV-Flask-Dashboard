@@ -1,33 +1,44 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-const btn=document.getElementById("themeToggle");
+    const themeToggle = document.getElementById("themeToggle");
 
-if(localStorage.getItem("theme")=="dark"){
+    // Check previously saved theme
+    const savedTheme = localStorage.getItem("theme");
 
-document.body.classList.add("dark-mode");
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark-mode");
 
-btn.innerHTML='<i class="bi bi-sun-fill"></i> Light Mode';
+        if (themeToggle) {
+            themeToggle.innerHTML =
+                '<i class="bi bi-sun-fill me-1"></i> Light Mode';
+        }
+    }
 
-}
 
-btn.addEventListener("click",function(){
+    // Dark mode button
+    if (themeToggle) {
 
-document.body.classList.toggle("dark-mode");
+        themeToggle.addEventListener("click", function () {
 
-if(document.body.classList.contains("dark-mode")){
+            document.body.classList.toggle("dark-mode");
 
-localStorage.setItem("theme","dark");
+            if (document.body.classList.contains("dark-mode")) {
 
-btn.innerHTML='<i class="bi bi-sun-fill"></i> Light Mode';
+                localStorage.setItem("theme", "dark");
 
-}else{
+                themeToggle.innerHTML =
+                    '<i class="bi bi-sun-fill me-1"></i> Light Mode';
 
-localStorage.setItem("theme","light");
+            } else {
 
-btn.innerHTML='<i class="bi bi-moon-stars-fill"></i> Dark Mode';
+                localStorage.setItem("theme", "light");
 
-}
+                themeToggle.innerHTML =
+                    '<i class="bi bi-moon-stars-fill me-1"></i> Dark Mode';
+            }
 
-});
+        });
+
+    }
 
 });
