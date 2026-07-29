@@ -2,7 +2,7 @@
 
 
 {% block title %}
-Data Insight Pro | CSV Analytics
+Data Insight Pro | CSV Analytics Dashboard
 {% endblock %}
 
 
@@ -16,22 +16,16 @@ Data Insight Pro | CSV Analytics
 <section class="dashboard-header text-center">
 
     <div class="header-icon">
-
         <i class="bi bi-bar-chart-line-fill"></i>
-
     </div>
 
     <h1 class="fw-bold">
-
         Data Insight Pro
-
     </h1>
 
     <p class="text-muted">
-
         Upload, clean, filter, analyze and visualize
         your CSV datasets in one place.
-
     </p>
 
 </section>
@@ -43,8 +37,7 @@ Data Insight Pro | CSV Analytics
 
 {% if error %}
 
-<div
-    class="alert alert-danger alert-dismissible fade show">
+<div class="alert alert-danger alert-dismissible fade show">
 
     <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
@@ -88,19 +81,14 @@ Data Insight Pro | CSV Analytics
 
         <h4 class="fw-semibold">
 
-            <i
-                class="bi bi-cloud-arrow-up-fill
-                me-2 text-primary">
-            </i>
+            <i class="bi bi-cloud-arrow-up-fill me-2 text-primary"></i>
 
             Upload Dataset
 
         </h4>
 
         <p class="text-muted">
-
             Select a CSV file to start your analysis.
-
         </p>
 
 
@@ -109,34 +97,21 @@ Data Insight Pro | CSV Analytics
             enctype="multipart/form-data"
             id="uploadForm">
 
-
             <div
                 class="upload-area"
                 id="dropArea">
 
                 <div class="upload-icon">
-
-                    <i
-                        class="bi
-                        bi-file-earmark-spreadsheet">
-                    </i>
-
+                    <i class="bi bi-file-earmark-spreadsheet"></i>
                 </div>
 
-
                 <h5 class="mt-3">
-
                     Choose CSV File
-
                 </h5>
 
-
                 <p class="text-muted">
-
                     CSV files only
-
                 </p>
-
 
                 <input
                     class="form-control"
@@ -145,7 +120,6 @@ Data Insight Pro | CSV Analytics
                     name="file"
                     accept=".csv,text/csv"
                     required>
-
 
                 <div
                     id="selectedFile"
@@ -157,13 +131,9 @@ Data Insight Pro | CSV Analytics
 
             <button
                 class="btn btn-primary mt-3 px-4"
-                type="submit"
-                id="uploadButton">
+                type="submit">
 
-                <i
-                    class="bi
-                    bi-graph-up-arrow me-2">
-                </i>
+                <i class="bi bi-graph-up-arrow me-2"></i>
 
                 Upload & Analyze
 
@@ -185,10 +155,7 @@ Data Insight Pro | CSV Analytics
 
 <div class="alert alert-success shadow-sm">
 
-    <i
-        class="bi
-        bi-check-circle-fill me-2">
-    </i>
+    <i class="bi bi-check-circle-fill me-2"></i>
 
     <strong>Dataset loaded:</strong>
 
@@ -203,7 +170,6 @@ Data Insight Pro | CSV Analytics
 
 <div class="row g-4 mb-4">
 
-
     <div class="col-xl-3 col-md-6">
 
         <div class="card dashboard-card h-100">
@@ -211,21 +177,15 @@ Data Insight Pro | CSV Analytics
             <div class="card-body">
 
                 <div class="kpi-icon">
-
                     <i class="bi bi-list-ul"></i>
-
                 </div>
 
                 <p class="text-muted mb-1">
-
                     Total Rows
-
                 </p>
 
                 <h2>
-
                     {{ "{:,}".format(rows or 0) }}
-
                 </h2>
 
             </div>
@@ -242,24 +202,15 @@ Data Insight Pro | CSV Analytics
             <div class="card-body">
 
                 <div class="kpi-icon">
-
-                    <i
-                        class="bi
-                        bi-layout-three-columns">
-                    </i>
-
+                    <i class="bi bi-layout-three-columns"></i>
                 </div>
 
                 <p class="text-muted mb-1">
-
                     Columns
-
                 </p>
 
                 <h2>
-
                     {{ cols or 0 }}
-
                 </h2>
 
             </div>
@@ -276,24 +227,15 @@ Data Insight Pro | CSV Analytics
             <div class="card-body">
 
                 <div class="kpi-icon warning-icon">
-
-                    <i
-                        class="bi
-                        bi-exclamation-triangle">
-                    </i>
-
+                    <i class="bi bi-exclamation-triangle"></i>
                 </div>
 
                 <p class="text-muted mb-1">
-
                     Missing Values
-
                 </p>
 
                 <h2>
-
                     {{ "{:,}".format(missing or 0) }}
-
                 </h2>
 
             </div>
@@ -310,21 +252,15 @@ Data Insight Pro | CSV Analytics
             <div class="card-body">
 
                 <div class="kpi-icon">
-
                     <i class="bi bi-copy"></i>
-
                 </div>
 
                 <p class="text-muted mb-1">
-
                     Duplicate Rows
-
                 </p>
 
                 <h2>
-
                     {{ "{:,}".format(duplicates or 0) }}
-
                 </h2>
 
             </div>
@@ -345,34 +281,23 @@ Data Insight Pro | CSV Analytics
     <div class="card-body p-4">
 
         <h4>
-
-            <i
-                class="bi
-                bi-database-fill me-2 text-primary">
-            </i>
-
+            <i class="bi bi-database-fill me-2 text-primary"></i>
             Dataset Information
-
         </h4>
 
 
         <div class="row g-3 mt-2">
 
-
             <div class="col-lg-3 col-md-6">
 
                 <div class="info-box">
 
                     <span class="info-title">
-
                         File
-
                     </span>
 
                     <span class="info-value">
-
                         {{ dataset_name }}
-
                     </span>
 
                 </div>
@@ -385,15 +310,11 @@ Data Insight Pro | CSV Analytics
                 <div class="info-box">
 
                     <span class="info-title">
-
                         Memory
-
                     </span>
 
                     <span class="info-value">
-
                         {{ memory }} KB
-
                     </span>
 
                 </div>
@@ -406,15 +327,11 @@ Data Insight Pro | CSV Analytics
                 <div class="info-box">
 
                     <span class="info-title">
-
                         Numeric Columns
-
                     </span>
 
                     <span class="info-value">
-
                         {{ numeric_count }}
-
                     </span>
 
                 </div>
@@ -427,21 +344,16 @@ Data Insight Pro | CSV Analytics
                 <div class="info-box">
 
                     <span class="info-title">
-
                         Categorical Columns
-
                     </span>
 
                     <span class="info-value">
-
                         {{ categorical_count }}
-
                     </span>
 
                 </div>
 
             </div>
-
 
         </div>
 
@@ -451,31 +363,20 @@ Data Insight Pro | CSV Analytics
 
 
 <!-- =====================================================
-     FILTER & EXPLORE
+     FILTER
 ===================================================== -->
 
 <div class="card dashboard-section mb-4">
 
     <div class="card-body p-4">
 
-
         <h4>
-
-            <i
-                class="bi
-                bi-funnel-fill me-2 text-primary">
-            </i>
-
+            <i class="bi bi-funnel-fill me-2 text-primary"></i>
             Filter & Explore Data
-
         </h4>
 
-
         <p class="text-muted">
-
-            Search across your dataset or filter
-            a specific column.
-
+            Search across your dataset or filter a specific column.
         </p>
 
 
@@ -483,26 +384,17 @@ Data Insight Pro | CSV Analytics
             method="POST"
             action="{{ url_for('filter_data') }}">
 
-
-            <!-- SEARCH -->
-
             <div class="mb-4">
 
                 <label class="form-label fw-semibold">
-
                     Search Dataset
-
                 </label>
-
 
                 <div class="input-group">
 
                     <span class="input-group-text">
-
                         <i class="bi bi-search"></i>
-
                     </span>
-
 
                     <input
                         type="text"
@@ -517,30 +409,20 @@ Data Insight Pro | CSV Analytics
 
             <div class="row g-3">
 
-
-                <!-- FILTER COLUMN -->
-
                 <div class="col-lg-4">
 
                     <label class="form-label fw-semibold">
-
                         Filter Column
-
                     </label>
-
 
                     <select
                         class="form-select"
                         name="filter_column"
                         id="filterColumn">
 
-
                         <option value="">
-
                             Select column
-
                         </option>
-
 
                         {% for col in columns %}
 
@@ -554,24 +436,18 @@ Data Insight Pro | CSV Analytics
 
                         {% endfor %}
 
-
                     </select>
 
                 </div>
 
-
-                <!-- CATEGORICAL VALUE -->
 
                 <div
                     class="col-lg-4"
                     id="categoricalFilter">
 
                     <label class="form-label fw-semibold">
-
                         Value
-
                     </label>
-
 
                     <input
                         type="text"
@@ -582,17 +458,11 @@ Data Insight Pro | CSV Analytics
                 </div>
 
 
-                <!-- NUMERIC MIN -->
-
-                <div
-                    class="col-lg-2 numeric-filter d-none">
+                <div class="col-lg-2 numeric-filter d-none">
 
                     <label class="form-label fw-semibold">
-
                         Minimum
-
                     </label>
-
 
                     <input
                         type="number"
@@ -603,17 +473,11 @@ Data Insight Pro | CSV Analytics
                 </div>
 
 
-                <!-- NUMERIC MAX -->
-
-                <div
-                    class="col-lg-2 numeric-filter d-none">
+                <div class="col-lg-2 numeric-filter d-none">
 
                     <label class="form-label fw-semibold">
-
                         Maximum
-
                     </label>
-
 
                     <input
                         type="number"
@@ -623,26 +487,17 @@ Data Insight Pro | CSV Analytics
 
                 </div>
 
-
             </div>
 
 
-            <div class="d-flex flex-wrap gap-2 mt-4">
+            <button
+                type="submit"
+                class="btn btn-primary mt-4">
 
+                <i class="bi bi-funnel me-2"></i>
+                Apply Filter
 
-                <button
-                    type="submit"
-                    class="btn btn-primary">
-
-                    <i class="bi bi-funnel me-2"></i>
-
-                    Apply Filter
-
-                </button>
-
-
-            </div>
-
+            </button>
 
         </form>
 
@@ -656,10 +511,7 @@ Data Insight Pro | CSV Analytics
                 type="submit"
                 class="btn btn-outline-secondary">
 
-                <i
-                    class="bi
-                    bi-arrow-counterclockwise me-2">
-                </i>
+                <i class="bi bi-arrow-counterclockwise me-2"></i>
 
                 Reset Filters
 
@@ -672,10 +524,7 @@ Data Insight Pro | CSV Analytics
 
         <div class="filter-result mt-4">
 
-            <i
-                class="bi
-                bi-filter-circle-fill me-2">
-            </i>
+            <i class="bi bi-filter-circle-fill me-2"></i>
 
             Showing
 
@@ -696,23 +545,15 @@ Data Insight Pro | CSV Analytics
         {% endif %}
 
 
-        <div class="mt-3">
+        <a
+            href="{{ url_for('download_filtered') }}"
+            class="btn btn-outline-primary mt-3">
 
-            <a
-                href="{{ url_for('download_filtered') }}"
-                class="btn btn-outline-primary">
+            <i class="bi bi-download me-2"></i>
 
-                <i
-                    class="bi
-                    bi-download me-2">
-                </i>
+            Download Filtered CSV
 
-                Download Filtered CSV
-
-            </a>
-
-        </div>
-
+        </a>
 
     </div>
 
@@ -720,7 +561,7 @@ Data Insight Pro | CSV Analytics
 
 
 <!-- =====================================================
-     FILTERED PREVIEW
+     PREVIEW
 ===================================================== -->
 
 {% if filtered_preview %}
@@ -730,27 +571,15 @@ Data Insight Pro | CSV Analytics
     <div class="card-body p-4">
 
         <h4>
-
-            <i
-                class="bi
-                bi-table me-2 text-primary">
-            </i>
-
+            <i class="bi bi-table me-2 text-primary"></i>
             Data Preview
-
         </h4>
 
-
         <p class="text-muted">
-
-            Showing up to the first 50 filtered rows.
-
+            Showing up to the first 50 rows of the current dataset.
         </p>
 
-
-        <div
-            class="table-responsive
-            data-table-wrapper">
+        <div class="table-responsive data-table-wrapper">
 
             {{ filtered_preview|safe }}
 
@@ -772,26 +601,16 @@ Data Insight Pro | CSV Analytics
     <div class="card-body p-4">
 
         <h4>
-
-            <i
-                class="bi
-                bi-magic me-2 text-primary">
-            </i>
-
+            <i class="bi bi-magic me-2 text-primary"></i>
             Data Cleaning
-
         </h4>
 
-
         <p class="text-muted">
-
-            Fix common data quality issues.
-
+            Fix common data quality issues before analysis.
         </p>
 
 
         <div class="row g-3 mb-4">
-
 
             <div class="col-md-6">
 
@@ -800,26 +619,17 @@ Data Insight Pro | CSV Analytics
                     <div>
 
                         <span class="cleaning-label">
-
                             Missing Values
-
                         </span>
 
                         <h3>
-
                             {{ missing or 0 }}
-
                         </h3>
 
                     </div>
 
                     <div class="cleaning-icon">
-
-                        <i
-                            class="bi
-                            bi-exclamation-triangle">
-                        </i>
-
+                        <i class="bi bi-exclamation-triangle"></i>
                     </div>
 
                 </div>
@@ -834,23 +644,17 @@ Data Insight Pro | CSV Analytics
                     <div>
 
                         <span class="cleaning-label">
-
                             Duplicate Rows
-
                         </span>
 
                         <h3>
-
                             {{ duplicates or 0 }}
-
                         </h3>
 
                     </div>
 
                     <div class="cleaning-icon">
-
                         <i class="bi bi-copy"></i>
-
                     </div>
 
                 </div>
@@ -862,7 +666,6 @@ Data Insight Pro | CSV Analytics
 
         <div class="d-flex flex-wrap gap-2">
 
-
             <form
                 method="POST"
                 action="{{ url_for('fill_missing') }}">
@@ -870,7 +673,6 @@ Data Insight Pro | CSV Analytics
                 <button class="btn btn-primary">
 
                     <i class="bi bi-magic me-2"></i>
-
                     Fill Missing Values
 
                 </button>
@@ -886,7 +688,6 @@ Data Insight Pro | CSV Analytics
                 <button class="btn btn-warning">
 
                     <i class="bi bi-trash3 me-2"></i>
-
                     Drop Missing Rows
 
                 </button>
@@ -901,13 +702,11 @@ Data Insight Pro | CSV Analytics
                 <button class="btn btn-danger">
 
                     <i class="bi bi-copy me-2"></i>
-
                     Remove Duplicates
 
                 </button>
 
             </form>
-
 
         </div>
 
@@ -916,26 +715,18 @@ Data Insight Pro | CSV Analytics
 
 
         <h5>
-
             <i class="bi bi-download me-2"></i>
-
             Export Cleaned Dataset
-
         </h5>
 
 
         <div class="d-flex flex-wrap gap-2 mt-3">
 
-
             <a
                 href="{{ url_for('download_csv') }}"
                 class="btn btn-outline-success">
 
-                <i
-                    class="bi
-                    bi-filetype-csv me-2">
-                </i>
-
+                <i class="bi bi-filetype-csv me-2"></i>
                 Download CSV
 
             </a>
@@ -945,15 +736,10 @@ Data Insight Pro | CSV Analytics
                 href="{{ url_for('download_excel') }}"
                 class="btn btn-outline-success">
 
-                <i
-                    class="bi
-                    bi-file-earmark-excel me-2">
-                </i>
-
+                <i class="bi bi-file-earmark-excel me-2"></i>
                 Download Excel
 
             </a>
-
 
         </div>
 
@@ -973,29 +759,23 @@ Data Insight Pro | CSV Analytics
     <div class="card-body p-4">
 
         <h4>
-
-            <i
-                class="bi
-                bi-stars me-2 text-primary">
-            </i>
-
+            <i class="bi bi-stars me-2 text-primary"></i>
             Smart Data Insights
-
         </h4>
+
+        <p class="text-muted">
+            Automatically generated observations about your dataset.
+        </p>
 
 
         <div class="ai-insight-box mt-3">
 
             <div class="ai-icon">
-
                 <i class="bi bi-robot"></i>
-
             </div>
 
             <div>
-
                 {{ ai_insights }}
-
             </div>
 
         </div>
@@ -1008,6 +788,499 @@ Data Insight Pro | CSV Analytics
 
 
 <!-- =====================================================
+     AUTOMATIC EDA
+===================================================== -->
+
+<div class="card dashboard-section eda-section mb-4">
+
+    <div class="card-body p-4">
+
+        <div class="d-flex align-items-start gap-3 mb-4">
+
+            <div class="eda-main-icon">
+                <i class="bi bi-search-heart"></i>
+            </div>
+
+            <div>
+
+                <h4 class="fw-semibold mb-1">
+                    Automatic Exploratory Data Analysis
+                </h4>
+
+                <p class="text-muted mb-0">
+                    Select a column to automatically explore
+                    its statistics, distribution and data quality.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <form method="POST">
+
+            <input
+                type="hidden"
+                name="action"
+                value="generate_eda">
+
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-lg-9">
+
+                    <label class="form-label fw-semibold">
+                        Analyze Column
+                    </label>
+
+                    <select
+                        class="form-select"
+                        name="eda_column"
+                        required>
+
+                        <option value="">
+                            Select a column...
+                        </option>
+
+                        {% for col in columns %}
+
+                        <option
+                            value="{{ col }}"
+                            {% if selected_eda_column == col %}
+                            selected
+                            {% endif %}>
+
+                            {{ col }}
+
+                            {% if col in numeric_columns %}
+                                — Numeric
+                            {% else %}
+                                — Categorical
+                            {% endif %}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-lg-3">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100">
+
+                        <i class="bi bi-search me-2"></i>
+
+                        Generate EDA
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+
+        {% if eda_result %}
+
+        <hr class="my-4">
+
+
+        <!-- EDA HEADER -->
+
+        <div class="eda-result-header mb-4">
+
+            <div>
+
+                <span class="eda-small-label">
+                    ANALYZING COLUMN
+                </span>
+
+                <h3 class="mb-1">
+                    {{ eda_result.column }}
+                </h3>
+
+                <span class="badge rounded-pill text-bg-primary">
+
+                    {{ eda_result.type }}
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             NUMERIC EDA
+        ================================================== -->
+
+        {% if eda_result.type == "Numeric" %}
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="eda-stat-card">
+
+                    <span>Mean</span>
+
+                    <strong>
+                        {{ eda_result.mean }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="eda-stat-card">
+
+                    <span>Median</span>
+
+                    <strong>
+                        {{ eda_result.median }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="eda-stat-card">
+
+                    <span>Minimum</span>
+
+                    <strong>
+                        {{ eda_result.min }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="eda-stat-card">
+
+                    <span>Maximum</span>
+
+                    <strong>
+                        {{ eda_result.max }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="eda-stat-card">
+
+                    <span>Standard Deviation</span>
+
+                    <strong>
+                        {{ eda_result.std }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="eda-stat-card">
+
+                    <span>Unique Values</span>
+
+                    <strong>
+                        {{ eda_result.unique }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="eda-stat-card">
+
+                    <span>Missing Values</span>
+
+                    <strong>
+                        {{ eda_result.missing }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-xl-3 col-md-6">
+
+                <div class="eda-stat-card outlier-card">
+
+                    <span>Potential Outliers</span>
+
+                    <strong>
+                        {{ eda_result.outliers }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- EDA INSIGHT -->
+
+        <div class="eda-insight mb-4">
+
+            <div class="eda-insight-icon">
+                <i class="bi bi-lightbulb-fill"></i>
+            </div>
+
+            <div>
+
+                <h6 class="fw-semibold">
+                    Key Finding
+                </h6>
+
+                <p class="mb-0">
+                    {{ eda_result.insight }}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- HISTOGRAM -->
+
+        {% if eda_result.histogram %}
+
+        <div class="eda-chart-card mb-4">
+
+            <h5>
+                <i class="bi bi-bar-chart me-2 text-primary"></i>
+                Distribution Analysis
+            </h5>
+
+            <p class="text-muted">
+                Understand the shape and frequency
+                distribution of the selected variable.
+            </p>
+
+            <div class="chart-container">
+                {{ eda_result.histogram|safe }}
+            </div>
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- BOX PLOT -->
+
+        {% if eda_result.boxplot %}
+
+        <div class="eda-chart-card">
+
+            <h5>
+                <i class="bi bi-box me-2 text-primary"></i>
+                Outlier Analysis
+            </h5>
+
+            <p class="text-muted">
+                Potential outliers are identified using
+                the interquartile range (IQR) method.
+            </p>
+
+            <div class="chart-container">
+                {{ eda_result.boxplot|safe }}
+            </div>
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- =================================================
+             CATEGORICAL EDA
+        ================================================== -->
+
+        {% elif eda_result.type == "Categorical" %}
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="eda-stat-card">
+
+                    <span>Valid Records</span>
+
+                    <strong>
+                        {{ eda_result.count }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="eda-stat-card">
+
+                    <span>Unique Values</span>
+
+                    <strong>
+                        {{ eda_result.unique }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="eda-stat-card">
+
+                    <span>Missing Values</span>
+
+                    <strong>
+                        {{ eda_result.missing }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="eda-stat-card">
+
+                    <span>Top Frequency</span>
+
+                    <strong>
+                        {{ eda_result.most_common_count }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="top-category-card mb-4">
+
+            <span class="eda-small-label">
+                MOST COMMON VALUE
+            </span>
+
+            <h4 class="mt-1 mb-0">
+                {{ eda_result.most_common }}
+            </h4>
+
+        </div>
+
+
+        <!-- INSIGHT -->
+
+        <div class="eda-insight mb-4">
+
+            <div class="eda-insight-icon">
+                <i class="bi bi-lightbulb-fill"></i>
+            </div>
+
+            <div>
+
+                <h6 class="fw-semibold">
+                    Key Finding
+                </h6>
+
+                <p class="mb-0">
+                    {{ eda_result.insight }}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- CATEGORY CHART -->
+
+        {% if eda_result.category_chart %}
+
+        <div class="eda-chart-card mb-4">
+
+            <h5>
+                <i class="bi bi-bar-chart-fill me-2 text-primary"></i>
+                Category Distribution
+            </h5>
+
+            <p class="text-muted">
+                Showing up to the 15 most frequent values.
+            </p>
+
+            <div class="chart-container">
+                {{ eda_result.category_chart|safe }}
+            </div>
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- CATEGORY TABLE -->
+
+        {% if eda_result.category_table %}
+
+        <div class="eda-chart-card">
+
+            <h5>
+                <i class="bi bi-table me-2 text-primary"></i>
+                Top Category Frequencies
+            </h5>
+
+            <div class="table-responsive data-table-wrapper mt-3">
+
+                {{ eda_result.category_table|safe }}
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+        {% endif %}
+
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
      VISUALIZATION BUILDER
 ===================================================== -->
 
@@ -1016,36 +1289,29 @@ Data Insight Pro | CSV Analytics
     <div class="card-body p-4">
 
         <h4>
-
-            <i
-                class="bi
-                bi-bar-chart-fill me-2 text-primary">
-            </i>
-
+            <i class="bi bi-bar-chart-fill me-2 text-primary"></i>
             Visualization Builder
-
         </h4>
 
-
         <p class="text-muted">
-
-            Charts use the currently filtered dataset.
-
+            Build interactive charts using the currently filtered dataset.
         </p>
 
 
         <form method="POST">
 
+            <input
+                type="hidden"
+                name="action"
+                value="generate_chart">
+
 
             <div class="row g-3">
-
 
                 <div class="col-lg-4">
 
                     <label class="form-label fw-semibold">
-
                         X-Axis
-
                     </label>
 
                     <select
@@ -1075,9 +1341,7 @@ Data Insight Pro | CSV Analytics
                 <div class="col-lg-4">
 
                     <label class="form-label fw-semibold">
-
                         Y-Axis
-
                     </label>
 
                     <select
@@ -1106,9 +1370,7 @@ Data Insight Pro | CSV Analytics
                 <div class="col-lg-4">
 
                     <label class="form-label fw-semibold">
-
                         Chart Type
-
                     </label>
 
                     <select
@@ -1116,27 +1378,51 @@ Data Insight Pro | CSV Analytics
                         name="chart_type"
                         required>
 
-                        <option value="scatter">
+                        <option
+                            value="scatter"
+                            {% if selected_chart == "scatter" %}
+                            selected
+                            {% endif %}>
                             Scatter Plot
                         </option>
 
-                        <option value="bar">
+                        <option
+                            value="bar"
+                            {% if selected_chart == "bar" %}
+                            selected
+                            {% endif %}>
                             Bar Chart
                         </option>
 
-                        <option value="line">
+                        <option
+                            value="line"
+                            {% if selected_chart == "line" %}
+                            selected
+                            {% endif %}>
                             Line Chart
                         </option>
 
-                        <option value="hist">
+                        <option
+                            value="hist"
+                            {% if selected_chart == "hist" %}
+                            selected
+                            {% endif %}>
                             Histogram
                         </option>
 
-                        <option value="pie">
+                        <option
+                            value="pie"
+                            {% if selected_chart == "pie" %}
+                            selected
+                            {% endif %}>
                             Pie Chart
                         </option>
 
-                        <option value="box">
+                        <option
+                            value="box"
+                            {% if selected_chart == "box" %}
+                            selected
+                            {% endif %}>
                             Box Plot
                         </option>
 
@@ -1148,17 +1434,14 @@ Data Insight Pro | CSV Analytics
 
 
             <button
+                type="submit"
                 class="btn btn-success mt-4">
 
-                <i
-                    class="bi
-                    bi-graph-up-arrow me-2">
-                </i>
+                <i class="bi bi-graph-up-arrow me-2"></i>
 
                 Generate Chart
 
             </button>
-
 
         </form>
 
@@ -1178,20 +1461,12 @@ Data Insight Pro | CSV Analytics
     <div class="card-body p-4">
 
         <h4>
-
-            <i
-                class="bi
-                bi-graph-up me-2 text-primary">
-            </i>
-
+            <i class="bi bi-graph-up me-2 text-primary"></i>
             Interactive Visualization
-
         </h4>
 
         <div class="chart-container">
-
             {{ plot_html|safe }}
-
         </div>
 
     </div>
@@ -1212,19 +1487,11 @@ Data Insight Pro | CSV Analytics
     <div class="card-body p-4">
 
         <h4>
-
-            <i
-                class="bi
-                bi-exclamation-circle me-2 text-warning">
-            </i>
-
+            <i class="bi bi-exclamation-circle me-2 text-warning"></i>
             Missing Value Analysis
-
         </h4>
 
-        <div
-            class="table-responsive
-            data-table-wrapper mt-3">
+        <div class="table-responsive data-table-wrapper mt-3">
 
             {{ missing_table|safe }}
 
@@ -1248,19 +1515,11 @@ Data Insight Pro | CSV Analytics
     <div class="card-body p-4">
 
         <h4>
-
-            <i
-                class="bi
-                bi-copy me-2 text-danger">
-            </i>
-
+            <i class="bi bi-copy me-2 text-danger"></i>
             Duplicate Row Analysis
-
         </h4>
 
-        <div
-            class="table-responsive
-            data-table-wrapper mt-3">
+        <div class="table-responsive data-table-wrapper mt-3">
 
             {{ duplicate_rows|safe }}
 
@@ -1284,19 +1543,11 @@ Data Insight Pro | CSV Analytics
     <div class="card-body p-4">
 
         <h4>
-
-            <i
-                class="bi
-                bi-clipboard-data me-2 text-primary">
-            </i>
-
+            <i class="bi bi-clipboard-data me-2 text-primary"></i>
             Summary Statistics
-
         </h4>
 
-        <div
-            class="table-responsive
-            data-table-wrapper mt-3">
+        <div class="table-responsive data-table-wrapper mt-3">
 
             {{ summary|safe }}
 
@@ -1320,23 +1571,13 @@ Data Insight Pro | CSV Analytics
     <div class="card-body p-4">
 
         <h4>
-
-            <i
-                class="bi
-                bi-grid-3x3-gap-fill me-2 text-danger">
-            </i>
-
+            <i class="bi bi-grid-3x3-gap-fill me-2 text-danger"></i>
             Correlation Heatmap
-
         </h4>
 
-
         <p class="text-muted">
-
-            Relationships between numeric variables.
-
+            Explore relationships between numeric variables.
         </p>
-
 
         <div class="heatmap-container text-center">
 
