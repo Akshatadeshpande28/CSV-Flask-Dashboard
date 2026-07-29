@@ -484,6 +484,241 @@ Data Insight Pro | CSV Analytics Dashboard
 
 
 <!-- =====================================================
+ <!-- =====================================================
+     DATA CLEANING
+===================================================== -->
+
+<div class="card dashboard-section mb-4">
+
+    <div class="card-body p-4">
+
+        <div class="section-heading mb-4">
+
+            <div>
+
+                <h4 class="fw-semibold mb-1">
+
+                    <i class="bi bi-stars me-2 text-primary"></i>
+
+                    Data Cleaning
+
+                </h4>
+
+                <p class="text-muted mb-0">
+
+                    Clean common data quality issues
+                    before continuing your analysis.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- CLEANING STATUS -->
+
+        {% if status_message %}
+
+        <div class="alert alert-info">
+
+            <i class="bi bi-info-circle-fill me-2"></i>
+
+            {{ status_message }}
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- DATA QUALITY NUMBERS -->
+
+        <div class="row g-3 mb-4">
+
+
+            <div class="col-md-6">
+
+                <div class="cleaning-stat">
+
+                    <div>
+
+                        <span class="cleaning-label">
+
+                            Missing Values
+
+                        </span>
+
+                        <h3 class="mb-0 mt-1">
+
+                            {{ missing or 0 }}
+
+                        </h3>
+
+                    </div>
+
+
+                    <div class="cleaning-icon">
+
+                        <i class="bi bi-exclamation-triangle"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="cleaning-stat">
+
+                    <div>
+
+                        <span class="cleaning-label">
+
+                            Duplicate Rows
+
+                        </span>
+
+                        <h3 class="mb-0 mt-1">
+
+                            {{ duplicates or 0 }}
+
+                        </h3>
+
+                    </div>
+
+
+                    <div class="cleaning-icon">
+
+                        <i class="bi bi-copy"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- CLEANING ACTIONS -->
+
+        <div class="d-flex flex-wrap gap-2">
+
+
+            <!-- FILL MISSING -->
+
+            <form
+                action="{{ url_for('fill_missing') }}"
+                method="POST">
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+
+                    <i class="bi bi-magic me-2"></i>
+
+                    Fill Missing Values
+
+                </button>
+
+            </form>
+
+
+            <!-- DROP MISSING -->
+
+            <form
+                action="{{ url_for('drop_missing') }}"
+                method="POST"
+
+                onsubmit="
+                return confirm(
+                    'Remove all rows containing missing values?'
+                );
+                ">
+
+                <button
+                    type="submit"
+                    class="btn btn-warning">
+
+                    <i class="bi bi-trash3 me-2"></i>
+
+                    Drop Missing Rows
+
+                </button>
+
+            </form>
+
+
+            <!-- REMOVE DUPLICATES -->
+
+            <form
+                action="{{ url_for('remove_duplicates') }}"
+                method="POST">
+
+                <button
+                    type="submit"
+                    class="btn btn-danger">
+
+                    <i class="bi bi-copy me-2"></i>
+
+                    Remove Duplicates
+
+                </button>
+
+            </form>
+
+
+        </div>
+
+
+        <hr class="my-4">
+
+
+        <!-- DOWNLOAD SECTION -->
+
+        <h5 class="fw-semibold mb-3">
+
+            <i class="bi bi-download me-2"></i>
+
+            Export Cleaned Dataset
+
+        </h5>
+
+
+        <div class="d-flex flex-wrap gap-2">
+
+
+            <a
+                href="{{ url_for('download_csv') }}"
+                class="btn btn-outline-success">
+
+                <i class="bi bi-filetype-csv me-2"></i>
+
+                Download CSV
+
+            </a>
+
+
+            <a
+                href="{{ url_for('download_excel') }}"
+                class="btn btn-outline-success">
+
+                <i class="bi bi-file-earmark-excel me-2"></i>
+
+                Download Excel
+
+            </a>
+
+
+        </div>
+
+
+    </div>
+
+</div>
      AI INSIGHTS
 ===================================================== -->
 
