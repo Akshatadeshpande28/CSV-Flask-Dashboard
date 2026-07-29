@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+
+{% block title %}
+Admin Dashboard | Data Insight Pro
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container py-4">
+
+
+    <!-- HEADER -->
+
+    <div
+        class="d-flex flex-wrap justify-content-between
+               align-items-center gap-3 mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+
+                <i class="bi bi-shield-check text-primary me-2"></i>
+
+                Admin Dashboard
+
+            </h2>
+
+            <p class="text-muted mb-0">
+                View registered users and login activity.
+            </p>
+
+        </div>
+
+
+        <a
+            href="{{ url_for('index') }}"
+            class="btn btn-outline-primary">
+
+            <i class="bi bi-arrow-left me-2"></i>
+
+            Back to Dashboard
+
+        </a>
+
+    </div>
+
+
+    <!-- =================================================
+         KPI CARDS
+    ================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-6">
+
+            <div class="card dashboard-card h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="kpi-icon">
+
+                        <i class="bi bi-people-fill"></i>
+
+                    </div>
+
+                    <p class="text-muted mb-1">
+                        Registered Users
+                    </p>
+
+                    <h2 class="fw-bold mb-0">
+
+                        {{ total_users }}
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-6">
+
+            <div class="card dashboard-card h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="kpi-icon">
+
+                        <i class="bi bi-box-arrow-in-right"></i>
+
+                    </div>
+
+                    <p class="text-muted mb-1">
+                        Total Logins
+                    </p>
+
+                    <h2 class="fw-bold mb-0">
+
+                        {{ total_logins }}
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         REGISTERED USERS
+    ================================================== -->
+
+    <div class="card dashboard-section mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-center gap-2 mb-3">
+
+                <i class="bi bi-people-fill text-primary fs-4"></i>
+
+                <h4 class="mb-0">
+                    Registered Users
+                </h4>
+
+            </div>
+
+
+            {% if users %}
+
+            <div class="table-responsive">
+
+                <table
+                    class="table table-hover table-striped align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>ID</th>
+
+                            <th>Name</th>
+
+                            <th>Email</th>
+
+                            <th>Role</th>
+
+                            <th>Joined</th>
+
+                            <th>Last Login</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for user in users %}
+
+                        <tr>
+
+                            <td>
+                                {{ user.id }}
+                            </td>
+
+                            <td class="fw-semibold">
+
+                                {{ user.name }}
+
+                            </td>
+
+                            <td>
+
+                                {{ user.email }}
+
+                            </td>
+
+                            <td>
+
+                                {% if user.is_admin %}
+
+                                    <span
+                                        class="badge text-bg-danger">
+
+                                        Admin
+
+                                    </span>
+
+                                {% else %}
+
+                                    <span
+                                        class="badge text-bg-primary">
+
+                                        User
+
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if user.created_at %}
+
+                                    {{ user.created_at.strftime(
+                                        "%d %b %Y, %I:%M %p"
+                                    ) }}
+
+                                {% else %}
+
+                                    —
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if user.last_login %}
+
+                                    {{ user.last_login.strftime(
+                                        "%d %b %Y, %I:%M %p"
+                                    ) }}
+
+                                {% else %}
+
+                                    Never
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+                <p class="text-muted mb-0">
+                    No registered users yet.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         LOGIN HISTORY
+    ================================================== -->
+
+    <div class="card dashboard-section">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-center gap-2 mb-3">
+
+                <i class="bi bi-clock-history text-primary fs-4"></i>
+
+                <h4 class="mb-0">
+                    Recent Login History
+                </h4>
+
+            </div>
+
+
+            <p class="text-muted">
+                Showing up to the latest 100 login records.
+            </p>
+
+
+            {% if login_history %}
+
+            <div class="table-responsive">
+
+                <table
+                    class="table table-hover table-striped align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>User</th>
+
+                            <th>Email</th>
+
+                            <th>Login Time</th>
+
+                            <th>Logout Time</th>
+
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for record in login_history %}
+
+                        <tr>
+
+                            <td class="fw-semibold">
+
+                                {{ record.user.name }}
+
+                            </td>
+
+                            <td>
+
+                                {{ record.user.email }}
+
+                            </td>
+
+                            <td>
+
+                                {{ record.login_time.strftime(
+                                    "%d %b %Y, %I:%M %p"
+                                ) }}
+
+                            </td>
+
+                            <td>
+
+                                {% if record.logout_time %}
+
+                                    {{ record.logout_time.strftime(
+                                        "%d %b %Y, %I:%M %p"
+                                    ) }}
+
+                                {% else %}
+
+                                    —
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if record.logout_time %}
+
+                                    <span
+                                        class="badge text-bg-secondary">
+
+                                        Logged Out
+
+                                    </span>
+
+                                {% else %}
+
+                                    <span
+                                        class="badge text-bg-success">
+
+                                        Session Open
+
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+                <p class="text-muted mb-0">
+                    No login activity yet.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+</div>
+
+{% endblock %}

@@ -4,17 +4,39 @@ from flask import (
     request,
     redirect,
     url_for,
-    send_file
+    send_file,
+    flash,
+    session,
+    abort
 )
 
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    login_user,
+    logout_user,
+    login_required,
+    current_user
+)
+
+from werkzeug.security import (
+    generate_password_hash,
+    check_password_hash
+)
+
+from werkzeug.utils import secure_filename
+
 import pandas as pd
-import numpy as np
 import plotly.express as px
 import plotly.io as pio
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 from io import BytesIO
+from datetime import datetime, timezone
+from functools import wraps
+
 import os
 
 
@@ -24,6 +46,61 @@ import os
 
 app = Flask(__name__)
 
+app.config["SECRET_KEY"] = os.environ.get(
+    "SECRET_KEY",
+    "dev-secret-change-this"
+)
+
+database_url = os.environ.get("DATABASE_URL")
+
+# Allows local testing if DATABASE_URL is unavailable.
+# Render will use your PostgreSQL DATABASE_URL.
+if not database_url:
+    database_url = "sqlite:///data_insight_pro.db"
+
+# Some providers may return postgres:// instead of postgresql://
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace(
+        "postgres://",
+        "postgresql://",
+        1
+    )
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# Maximum CSV upload size: 25 MB
+app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024
+
+
+# =========================================================
+# DATABASE
+# =========================================================
+
+db = SQLAlchemy(app)
+
+
+# =========================================================
+# LOGIN MANAGER
+# =========================================================
+
+login_manager = LoginManager()
+
+login_manager.init_app(app)
+
+login_manager.login_view = "login"
+
+login_manager.login_message = (
+    "Please log in to access Data Insight Pro."
+)
+
+login_manager.login_message_category = "warning"
+
+
+# =========================================================
+# FOLDERS
+# =========================================================
+
 UPLOAD_FOLDER = "uploads"
 STATIC_FOLDER = "static"
 
@@ -32,21 +109,229 @@ os.makedirs(STATIC_FOLDER, exist_ok=True)
 
 
 # =========================================================
-# GLOBAL DATA
+# USER MODEL
 # =========================================================
 
-# Main cleaned dataset
-df_global = None
+class User(UserMixin, db.Model):
 
-# Dataset currently being filtered/explored
-df_filtered = None
+    __tablename__ = "users"
 
-dataset_name_global = None
-status_message = None
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    name = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    email = db.Column(
+        db.String(150),
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+    password_hash = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    is_admin = db.Column(
+        db.Boolean,
+        default=False,
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
+
+    last_login = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True
+    )
+
+    def set_password(self, password):
+
+        self.password_hash = generate_password_hash(
+            password
+        )
+
+    def check_password(self, password):
+
+        return check_password_hash(
+            self.password_hash,
+            password
+        )
 
 
 # =========================================================
-# PLOTLY HTML HELPER
+# LOGIN HISTORY MODEL
+# =========================================================
+
+class LoginHistory(db.Model):
+
+    __tablename__ = "login_history"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False,
+        index=True
+    )
+
+    login_time = db.Column(
+        db.DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
+
+    logout_time = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True
+    )
+
+    user = db.relationship(
+        "User",
+        backref=db.backref(
+            "login_records",
+            lazy=True
+        )
+    )
+
+
+# =========================================================
+# LOAD LOGGED-IN USER
+# =========================================================
+
+@login_manager.user_loader
+def load_user(user_id):
+
+    try:
+        return db.session.get(
+            User,
+            int(user_id)
+        )
+
+    except (ValueError, TypeError):
+        return None
+
+
+# =========================================================
+# ADMIN PROTECTION
+# =========================================================
+
+def admin_required(function):
+
+    @wraps(function)
+    def decorated_function(*args, **kwargs):
+
+        if not current_user.is_authenticated:
+            return redirect(
+                url_for("login")
+            )
+
+        if not current_user.is_admin:
+            abort(403)
+
+        return function(
+            *args,
+            **kwargs
+        )
+
+    return decorated_function
+
+
+# =========================================================
+# USER DATASET HELPERS
+# =========================================================
+
+def get_user_folder():
+
+    folder = os.path.join(
+        UPLOAD_FOLDER,
+        f"user_{current_user.id}"
+    )
+
+    os.makedirs(
+        folder,
+        exist_ok=True
+    )
+
+    return folder
+
+
+def get_original_path():
+
+    return os.path.join(
+        get_user_folder(),
+        "current_dataset.csv"
+    )
+
+
+def get_filtered_path():
+
+    return os.path.join(
+        get_user_folder(),
+        "filtered_dataset.csv"
+    )
+
+
+def save_original_dataframe(df):
+
+    df.to_csv(
+        get_original_path(),
+        index=False
+    )
+
+
+def save_filtered_dataframe(df):
+
+    df.to_csv(
+        get_filtered_path(),
+        index=False
+    )
+
+
+def load_original_dataframe():
+
+    path = get_original_path()
+
+    if not os.path.exists(path):
+        return None
+
+    return pd.read_csv(path)
+
+
+def load_filtered_dataframe():
+
+    path = get_filtered_path()
+
+    if os.path.exists(path):
+        return pd.read_csv(path)
+
+    return load_original_dataframe()
+
+
+def current_dataset_name():
+
+    return session.get(
+        "dataset_name",
+        "dataset.csv"
+    )
+
+
+# =========================================================
+# PLOTLY HELPER
 # =========================================================
 
 def plot_to_html(fig):
@@ -88,7 +373,6 @@ def generate_ai_insights(df):
         f"and {cols} columns."
     )
 
-    # Missing values
     missing = int(
         df.isnull().sum().sum()
     )
@@ -114,7 +398,6 @@ def generate_ai_insights(df):
             "✅ No missing values were detected."
         )
 
-    # Duplicates
     duplicates = int(
         df.duplicated().sum()
     )
@@ -131,9 +414,12 @@ def generate_ai_insights(df):
             "✅ No duplicate rows were detected."
         )
 
-    # Numeric columns
     numeric = df.select_dtypes(
         include="number"
+    )
+
+    categorical = df.select_dtypes(
+        exclude="number"
     )
 
     if len(numeric.columns) > 0:
@@ -143,11 +429,6 @@ def generate_ai_insights(df):
             f"are available for statistical analysis."
         )
 
-    # Categorical columns
-    categorical = df.select_dtypes(
-        exclude="number"
-    )
-
     if len(categorical.columns) > 0:
 
         insights.append(
@@ -155,27 +436,18 @@ def generate_ai_insights(df):
             f"columns were detected."
         )
 
-    # Strongest correlation
     if len(numeric.columns) >= 2:
 
-        correlation_matrix = (
-            numeric.corr()
-        )
+        correlation_matrix = numeric.corr()
 
-        correlations = (
-            correlation_matrix
-            .unstack()
-        )
+        correlations = correlation_matrix.unstack()
 
         correlations = correlations[
             correlations.index.get_level_values(0)
             != correlations.index.get_level_values(1)
         ]
 
-        correlations = (
-            correlations
-            .dropna()
-        )
+        correlations = correlations.dropna()
 
         if not correlations.empty:
 
@@ -185,11 +457,9 @@ def generate_ai_insights(df):
                 .idxmax()
             )
 
-            strongest_value = (
-                correlations.loc[
-                    strongest_index
-                ]
-            )
+            strongest_value = correlations.loc[
+                strongest_index
+            ]
 
             col1 = strongest_index[0]
             col2 = strongest_index[1]
@@ -204,14 +474,13 @@ def generate_ai_insights(df):
 
 
 # =========================================================
-# PREPARE DASHBOARD DATA
+# PREPARE DASHBOARD
 # =========================================================
 
 def prepare_dashboard_data(df):
 
     dashboard = {}
 
-    # Basic information
     dashboard["columns"] = (
         df.columns.tolist()
     )
@@ -237,7 +506,6 @@ def prepare_dashboard_data(df):
         2
     )
 
-    # Column types
     numeric_columns = (
         df.select_dtypes(
             include="number"
@@ -270,7 +538,6 @@ def prepare_dashboard_data(df):
         categorical_columns
     )
 
-    # Preview
     dashboard["preview"] = (
         df.head(50)
         .to_html(
@@ -283,7 +550,6 @@ def prepare_dashboard_data(df):
         )
     )
 
-    # Summary
     try:
 
         summary_df = (
@@ -307,7 +573,6 @@ def prepare_dashboard_data(df):
 
         dashboard["summary"] = None
 
-    # Missing values
     missing_counts = (
         df.isnull().sum()
     )
@@ -327,18 +592,17 @@ def prepare_dashboard_data(df):
             index=df.columns
         )
 
-    missing_df = pd.DataFrame({
+    missing_df = pd.DataFrame(
+        {
+            "Column": df.columns,
 
-        "Column":
-            df.columns,
+            "Missing Values":
+                missing_counts.values,
 
-        "Missing Values":
-            missing_counts.values,
-
-        "Missing Percentage (%)":
-            missing_percentage.values
-
-    })
+            "Missing Percentage (%)":
+                missing_percentage.values
+        }
+    )
 
     missing_df = (
         missing_df
@@ -359,7 +623,6 @@ def prepare_dashboard_data(df):
         )
     )
 
-    # Duplicate preview
     dashboard["duplicate_rows"] = None
 
     if dashboard["duplicates"] > 0:
@@ -380,18 +643,14 @@ def prepare_dashboard_data(df):
             )
         )
 
-    # Smart insights
     dashboard["ai_insights"] = (
         generate_ai_insights(df)
     )
 
-    # Correlation heatmap
     dashboard["heatmap"] = None
 
-    numeric_df = (
-        df.select_dtypes(
-            include="number"
-        )
+    numeric_df = df.select_dtypes(
+        include="number"
     )
 
     if len(numeric_df.columns) >= 2:
@@ -419,8 +678,9 @@ def prepare_dashboard_data(df):
 
         plt.tight_layout()
 
+        # Each user gets their own heatmap.
         heatmap_filename = (
-            "heatmap.png"
+            f"heatmap_user_{current_user.id}.png"
         )
 
         heatmap_path = os.path.join(
@@ -454,7 +714,6 @@ def search_dataframe(
 ):
 
     if not search_text:
-
         return df.copy()
 
     search_text = (
@@ -507,23 +766,16 @@ def generate_numeric_eda(
     ).dropna()
 
     if series.empty:
-
         return None
 
-    # Statistics
     mean = series.mean()
     median = series.median()
     minimum = series.min()
     maximum = series.max()
     std_dev = series.std()
 
-    q1 = series.quantile(
-        0.25
-    )
-
-    q3 = series.quantile(
-        0.75
-    )
+    q1 = series.quantile(0.25)
+    q3 = series.quantile(0.75)
 
     iqr = q3 - q1
 
@@ -557,7 +809,6 @@ def generate_numeric_eda(
         )
     )
 
-    # Skewness
     skewness = series.skew()
 
     if pd.isna(skewness):
@@ -569,47 +820,39 @@ def generate_numeric_eda(
     elif skewness > 1:
 
         distribution_text = (
-            "The distribution is strongly "
-            "right-skewed."
+            "The distribution is strongly right-skewed."
         )
 
     elif skewness > 0.5:
 
         distribution_text = (
-            "The distribution is moderately "
-            "right-skewed."
+            "The distribution is moderately right-skewed."
         )
 
     elif skewness < -1:
 
         distribution_text = (
-            "The distribution is strongly "
-            "left-skewed."
+            "The distribution is strongly left-skewed."
         )
 
     elif skewness < -0.5:
 
         distribution_text = (
-            "The distribution is moderately "
-            "left-skewed."
+            "The distribution is moderately left-skewed."
         )
 
     else:
 
         distribution_text = (
-            "The distribution is approximately "
-            "symmetric."
+            "The distribution is approximately symmetric."
         )
 
-    # Insight
     insight_parts = [
-
         f"{column} has an average value "
         f"of {mean:.2f} and a median of "
         f"{median:.2f}.",
 
         distribution_text
-
     ]
 
     if outlier_count > 0:
@@ -621,9 +864,8 @@ def generate_numeric_eda(
         )
 
         insight_parts.append(
-            f"{outlier_count:,} potential "
-            f"outlier(s) were identified "
-            f"using the IQR method "
+            f"{outlier_count:,} potential outlier(s) "
+            f"were identified using the IQR method "
             f"({outlier_percentage:.2f}% "
             f"of valid observations)."
         )
@@ -631,8 +873,8 @@ def generate_numeric_eda(
     else:
 
         insight_parts.append(
-            "No potential outliers were "
-            "identified using the IQR method."
+            "No potential outliers were identified "
+            "using the IQR method."
         )
 
     if missing_count > 0:
@@ -646,15 +888,12 @@ def generate_numeric_eda(
         insight_parts
     )
 
-    # Histogram
     hist_fig = px.histogram(
         df,
         x=column,
         nbins=30,
         marginal="rug",
-        title=(
-            f"Distribution of {column}"
-        )
+        title=f"Distribution of {column}"
     )
 
     hist_fig.update_layout(
@@ -668,14 +907,11 @@ def generate_numeric_eda(
         )
     )
 
-    # Box Plot
     box_fig = px.box(
         df,
         y=column,
         points="outliers",
-        title=(
-            f"Outlier Analysis: {column}"
-        )
+        title=f"Outlier Analysis: {column}"
     )
 
     box_fig.update_layout(
@@ -689,61 +925,33 @@ def generate_numeric_eda(
     )
 
     return {
-
-        "column":
-            column,
-
-        "type":
-            "Numeric",
-
-        "count":
-            int(series.count()),
-
-        "missing":
-            missing_count,
-
-        "unique":
-            unique_count,
-
-        "mean":
-            round(mean, 2),
-
-        "median":
-            round(median, 2),
-
-        "min":
-            round(minimum, 2),
-
-        "max":
-            round(maximum, 2),
+        "column": column,
+        "type": "Numeric",
+        "count": int(series.count()),
+        "missing": missing_count,
+        "unique": unique_count,
+        "mean": round(mean, 2),
+        "median": round(median, 2),
+        "min": round(minimum, 2),
+        "max": round(maximum, 2),
 
         "std":
             round(std_dev, 2)
             if pd.notna(std_dev)
             else 0,
 
-        "q1":
-            round(q1, 2),
-
-        "q3":
-            round(q3, 2),
-
-        "outliers":
-            outlier_count,
+        "q1": round(q1, 2),
+        "q3": round(q3, 2),
+        "outliers": outlier_count,
 
         "skewness":
             round(skewness, 2)
             if pd.notna(skewness)
             else 0,
 
-        "insight":
-            insight,
-
-        "histogram":
-            histogram_html,
-
-        "boxplot":
-            boxplot_html
+        "insight": insight,
+        "histogram": histogram_html,
+        "boxplot": boxplot_html
     }
 
 
@@ -777,9 +985,7 @@ def generate_categorical_eda(
 
     else:
 
-        mode = (
-            non_null.mode()
-        )
+        mode = non_null.mode()
 
         most_common = (
             str(mode.iloc[0])
@@ -794,7 +1000,6 @@ def generate_categorical_eda(
             ).sum()
         )
 
-    # Top categories
     category_counts = (
         non_null
         .astype(str)
@@ -814,9 +1019,7 @@ def generate_categorical_eda(
             category_counts,
             x="Category",
             y="Count",
-            title=(
-                f"Top Categories in {column}"
-            )
+            title=f"Top Categories in {column}"
         )
 
         category_fig.update_layout(
@@ -834,13 +1037,10 @@ def generate_categorical_eda(
 
         category_html = None
 
-    # Insight
     insight_parts = [
-
         f"{column} contains "
         f"{unique_count:,} unique "
         f"non-null value(s)."
-
     ]
 
     if most_common != "N/A":
@@ -879,7 +1079,6 @@ def generate_categorical_eda(
         insight_parts
     )
 
-    # Table
     category_table = None
 
     if not category_counts.empty:
@@ -897,55 +1096,303 @@ def generate_categorical_eda(
         )
 
     return {
-
-        "column":
-            column,
-
-        "type":
-            "Categorical",
-
-        "count":
-            int(
-                non_null.count()
-            ),
-
-        "missing":
-            missing_count,
-
-        "unique":
-            unique_count,
-
-        "most_common":
-            most_common,
-
-        "most_common_count":
-            most_common_count,
-
-        "insight":
-            insight,
-
-        "category_chart":
-            category_html,
-
-        "category_table":
-            category_table
+        "column": column,
+        "type": "Categorical",
+        "count": int(non_null.count()),
+        "missing": missing_count,
+        "unique": unique_count,
+        "most_common": most_common,
+        "most_common_count": most_common_count,
+        "insight": insight,
+        "category_chart": category_html,
+        "category_table": category_table
     }
 
 
 # =========================================================
-# HOME PAGE
+# REGISTER
+# =========================================================
+
+@app.route(
+    "/register",
+    methods=["GET", "POST"]
+)
+def register():
+
+    if current_user.is_authenticated:
+        return redirect(
+            url_for("index")
+        )
+
+    if request.method == "POST":
+
+        name = request.form.get(
+            "name",
+            ""
+        ).strip()
+
+        email = request.form.get(
+            "email",
+            ""
+        ).strip().lower()
+
+        password = request.form.get(
+            "password",
+            ""
+        )
+
+        confirm_password = request.form.get(
+            "confirm_password",
+            ""
+        )
+
+        if not name or not email or not password:
+
+            flash(
+                "Please complete all required fields.",
+                "danger"
+            )
+
+            return render_template(
+                "register.html"
+            )
+
+        if "@" not in email:
+
+            flash(
+                "Please enter a valid email address.",
+                "danger"
+            )
+
+            return render_template(
+                "register.html"
+            )
+
+        if len(password) < 8:
+
+            flash(
+                "Password must contain at least 8 characters.",
+                "danger"
+            )
+
+            return render_template(
+                "register.html"
+            )
+
+        if password != confirm_password:
+
+            flash(
+                "Passwords do not match.",
+                "danger"
+            )
+
+            return render_template(
+                "register.html"
+            )
+
+        existing_user = (
+            User.query
+            .filter_by(
+                email=email
+            )
+            .first()
+        )
+
+        if existing_user:
+
+            flash(
+                "An account with this email already exists.",
+                "warning"
+            )
+
+            return redirect(
+                url_for("login")
+            )
+
+        user = User(
+            name=name,
+            email=email
+        )
+
+        user.set_password(
+            password
+        )
+
+        db.session.add(
+            user
+        )
+
+        db.session.commit()
+
+        flash(
+            "Account created successfully. Please log in.",
+            "success"
+        )
+
+        return redirect(
+            url_for("login")
+        )
+
+    return render_template(
+        "register.html"
+    )
+
+
+# =========================================================
+# LOGIN
+# =========================================================
+
+@app.route(
+    "/login",
+    methods=["GET", "POST"]
+)
+def login():
+
+    if current_user.is_authenticated:
+        return redirect(
+            url_for("index")
+        )
+
+    if request.method == "POST":
+
+        email = request.form.get(
+            "email",
+            ""
+        ).strip().lower()
+
+        password = request.form.get(
+            "password",
+            ""
+        )
+
+        user = (
+            User.query
+            .filter_by(
+                email=email
+            )
+            .first()
+        )
+
+        if (
+            user
+            and user.check_password(
+                password
+            )
+        ):
+
+            login_user(
+                user
+            )
+
+            now = datetime.now(
+                timezone.utc
+            )
+
+            user.last_login = now
+
+            login_record = LoginHistory(
+                user_id=user.id,
+                login_time=now
+            )
+
+            db.session.add(
+                login_record
+            )
+
+            db.session.commit()
+
+            session[
+                "login_history_id"
+            ] = login_record.id
+
+            flash(
+                f"Welcome back, {user.name}!",
+                "success"
+            )
+
+            next_page = request.args.get(
+                "next"
+            )
+
+            # Avoid redirecting to external URLs.
+            if (
+                next_page
+                and next_page.startswith("/")
+                and not next_page.startswith("//")
+            ):
+                return redirect(next_page)
+
+            return redirect(
+                url_for("index")
+            )
+
+        flash(
+            "Invalid email or password.",
+            "danger"
+        )
+
+    return render_template(
+        "login.html"
+    )
+
+
+# =========================================================
+# LOGOUT
+# =========================================================
+
+@app.route("/logout")
+@login_required
+def logout():
+
+    history_id = session.get(
+        "login_history_id"
+    )
+
+    if history_id:
+
+        history = db.session.get(
+            LoginHistory,
+            history_id
+        )
+
+        if (
+            history
+            and history.user_id
+            == current_user.id
+        ):
+
+            history.logout_time = (
+                datetime.now(
+                    timezone.utc
+                )
+            )
+
+            db.session.commit()
+
+    logout_user()
+
+    session.clear()
+
+    flash(
+        "You have been logged out.",
+        "success"
+    )
+
+    return redirect(
+        url_for("login")
+    )
+
+
+# =========================================================
+# HOME / DASHBOARD
 # =========================================================
 
 @app.route(
     "/",
     methods=["GET", "POST"]
 )
+@login_required
 def index():
-
-    global df_global
-    global df_filtered
-    global dataset_name_global
-    global status_message
 
     error = None
 
@@ -955,9 +1402,16 @@ def index():
     selected_y = None
     selected_chart = None
 
-    # EDA
     eda_result = None
     selected_eda_column = None
+
+    df_global = (
+        load_original_dataframe()
+    )
+
+    df_filtered = (
+        load_filtered_dataframe()
+    )
 
     if request.method == "POST":
 
@@ -977,261 +1431,247 @@ def index():
 
             if file and file.filename:
 
-                if not (
+                filename = secure_filename(
                     file.filename
-                    .lower()
-                    .endswith(".csv")
+                )
+
+                if not filename.lower().endswith(
+                    ".csv"
                 ):
 
                     raise ValueError(
                         "Please upload a valid CSV file."
                     )
 
-                dataset_name_global = (
-                    file.filename
-                )
-
-                filepath = os.path.join(
-                    UPLOAD_FOLDER,
-                    file.filename
-                )
-
-                file.save(
-                    filepath
-                )
-
+                # Read directly from upload.
                 df_global = pd.read_csv(
-                    filepath
+                    file
                 )
+
+                if df_global.empty:
+
+                    raise ValueError(
+                        "The uploaded CSV file contains no data."
+                    )
 
                 df_filtered = (
                     df_global.copy()
                 )
 
-                status_message = (
-                    "Dataset uploaded successfully."
+                save_original_dataframe(
+                    df_global
+                )
+
+                save_filtered_dataframe(
+                    df_filtered
+                )
+
+                session["dataset_name"] = (
+                    filename
+                )
+
+                flash(
+                    "Dataset uploaded successfully.",
+                    "success"
                 )
 
             # =================================================
-            # CHART GENERATION
+            # CHART
             # =================================================
 
             if action == "generate_chart":
-
-                selected_x = (
-                    request.form.get(
-                        "x_col"
-                    )
-                )
-
-                selected_y = (
-                    request.form.get(
-                        "y_col"
-                    )
-                )
-
-                selected_chart = (
-                    request.form.get(
-                        "chart_type"
-                    )
-                )
-
-                if (
-                    df_filtered is not None
-                    and selected_chart
-                    and selected_x
-                ):
-
-                    chart_df = (
-                        df_filtered
-                    )
-
-                    if (
-                        selected_x
-                        not in chart_df.columns
-                    ):
-
-                        raise ValueError(
-                            "Selected X-axis column "
-                            "does not exist."
-                        )
-
-                    # Scatter
-                    if selected_chart == "scatter":
-
-                        if (
-                            selected_y
-                            and selected_y
-                            in chart_df.columns
-                        ):
-
-                            fig = px.scatter(
-                                chart_df,
-                                x=selected_x,
-                                y=selected_y,
-                                title=(
-                                    f"{selected_x} "
-                                    f"vs {selected_y}"
-                                )
-                            )
-
-                        else:
-
-                            raise ValueError(
-                                "Please select a valid "
-                                "Y-axis column."
-                            )
-
-                    # Bar
-                    elif selected_chart == "bar":
-
-                        if (
-                            selected_y
-                            and selected_y
-                            in chart_df.columns
-                        ):
-
-                            fig = px.bar(
-                                chart_df,
-                                x=selected_x,
-                                y=selected_y,
-                                title=(
-                                    f"{selected_y} "
-                                    f"by {selected_x}"
-                                )
-                            )
-
-                        else:
-
-                            raise ValueError(
-                                "Please select a valid "
-                                "Y-axis column."
-                            )
-
-                    # Line
-                    elif selected_chart == "line":
-
-                        if (
-                            selected_y
-                            and selected_y
-                            in chart_df.columns
-                        ):
-
-                            fig = px.line(
-                                chart_df,
-                                x=selected_x,
-                                y=selected_y,
-                                title=(
-                                    f"{selected_y} Trend "
-                                    f"by {selected_x}"
-                                )
-                            )
-
-                        else:
-
-                            raise ValueError(
-                                "Please select a valid "
-                                "Y-axis column."
-                            )
-
-                    # Histogram
-                    elif selected_chart == "hist":
-
-                        fig = px.histogram(
-                            chart_df,
-                            x=selected_x,
-                            title=(
-                                f"Distribution of "
-                                f"{selected_x}"
-                            )
-                        )
-
-                    # Pie
-                    elif selected_chart == "pie":
-
-                        value_counts = (
-                            chart_df[
-                                selected_x
-                            ]
-                            .value_counts()
-                            .head(15)
-                            .reset_index()
-                        )
-
-                        value_counts.columns = [
-                            selected_x,
-                            "Count"
-                        ]
-
-                        fig = px.pie(
-                            value_counts,
-                            names=selected_x,
-                            values="Count",
-                            title=(
-                                f"Distribution of "
-                                f"{selected_x}"
-                            )
-                        )
-
-                    # Box
-                    elif selected_chart == "box":
-
-                        if (
-                            selected_y
-                            and selected_y
-                            in chart_df.columns
-                        ):
-
-                            fig = px.box(
-                                chart_df,
-                                x=selected_x,
-                                y=selected_y,
-                                title=(
-                                    f"{selected_y} "
-                                    f"by {selected_x}"
-                                )
-                            )
-
-                        else:
-
-                            fig = px.box(
-                                chart_df,
-                                y=selected_x,
-                                title=(
-                                    f"Distribution of "
-                                    f"{selected_x}"
-                                )
-                            )
-
-                    else:
-
-                        raise ValueError(
-                            "Invalid chart type."
-                        )
-
-                    plot_html = (
-                        plot_to_html(
-                            fig
-                        )
-                    )
-
-            # =================================================
-            # AUTOMATIC EDA
-            # =================================================
-
-            elif action == "generate_eda":
-
-                selected_eda_column = (
-                    request.form.get(
-                        "eda_column"
-                    )
-                )
 
                 if df_filtered is None:
 
                     raise ValueError(
                         "Please upload a dataset first."
                     )
+
+                selected_x = request.form.get(
+                    "x_col"
+                )
+
+                selected_y = request.form.get(
+                    "y_col"
+                )
+
+                selected_chart = request.form.get(
+                    "chart_type"
+                )
+
+                if (
+                    not selected_x
+                    or selected_x
+                    not in df_filtered.columns
+                ):
+
+                    raise ValueError(
+                        "Please select a valid X-axis column."
+                    )
+
+                chart_df = df_filtered
+
+                if selected_chart == "scatter":
+
+                    if (
+                        not selected_y
+                        or selected_y
+                        not in chart_df.columns
+                    ):
+
+                        raise ValueError(
+                            "Please select a valid Y-axis column."
+                        )
+
+                    fig = px.scatter(
+                        chart_df,
+                        x=selected_x,
+                        y=selected_y,
+                        title=(
+                            f"{selected_x} vs "
+                            f"{selected_y}"
+                        )
+                    )
+
+                elif selected_chart == "bar":
+
+                    if (
+                        not selected_y
+                        or selected_y
+                        not in chart_df.columns
+                    ):
+
+                        raise ValueError(
+                            "Please select a valid Y-axis column."
+                        )
+
+                    fig = px.bar(
+                        chart_df,
+                        x=selected_x,
+                        y=selected_y,
+                        title=(
+                            f"{selected_y} by "
+                            f"{selected_x}"
+                        )
+                    )
+
+                elif selected_chart == "line":
+
+                    if (
+                        not selected_y
+                        or selected_y
+                        not in chart_df.columns
+                    ):
+
+                        raise ValueError(
+                            "Please select a valid Y-axis column."
+                        )
+
+                    fig = px.line(
+                        chart_df,
+                        x=selected_x,
+                        y=selected_y,
+                        title=(
+                            f"{selected_y} Trend "
+                            f"by {selected_x}"
+                        )
+                    )
+
+                elif selected_chart == "hist":
+
+                    fig = px.histogram(
+                        chart_df,
+                        x=selected_x,
+                        title=(
+                            f"Distribution of "
+                            f"{selected_x}"
+                        )
+                    )
+
+                elif selected_chart == "pie":
+
+                    value_counts = (
+                        chart_df[
+                            selected_x
+                        ]
+                        .value_counts()
+                        .head(15)
+                        .reset_index()
+                    )
+
+                    value_counts.columns = [
+                        selected_x,
+                        "Count"
+                    ]
+
+                    fig = px.pie(
+                        value_counts,
+                        names=selected_x,
+                        values="Count",
+                        title=(
+                            f"Distribution of "
+                            f"{selected_x}"
+                        )
+                    )
+
+                elif selected_chart == "box":
+
+                    if (
+                        selected_y
+                        and selected_y
+                        in chart_df.columns
+                    ):
+
+                        fig = px.box(
+                            chart_df,
+                            x=selected_x,
+                            y=selected_y,
+                            title=(
+                                f"{selected_y} by "
+                                f"{selected_x}"
+                            )
+                        )
+
+                    else:
+
+                        fig = px.box(
+                            chart_df,
+                            y=selected_x,
+                            title=(
+                                f"Distribution of "
+                                f"{selected_x}"
+                            )
+                        )
+
+                else:
+
+                    raise ValueError(
+                        "Invalid chart type."
+                    )
+
+                plot_html = (
+                    plot_to_html(
+                        fig
+                    )
+                )
+
+            # =================================================
+            # EDA
+            # =================================================
+
+            elif action == "generate_eda":
+
+                if df_filtered is None:
+
+                    raise ValueError(
+                        "Please upload a dataset first."
+                    )
+
+                selected_eda_column = (
+                    request.form.get(
+                        "eda_column"
+                    )
+                )
 
                 if (
                     not selected_eda_column
@@ -1240,8 +1680,7 @@ def index():
                 ):
 
                     raise ValueError(
-                        "Please select a valid "
-                        "column for EDA."
+                        "Please select a valid column for EDA."
                     )
 
                 if pd.api.types.is_numeric_dtype(
@@ -1282,67 +1721,39 @@ def index():
         except UnicodeDecodeError:
 
             error = (
-                "Please save the CSV file using "
-                "UTF-8 encoding."
+                "Please save the CSV file using UTF-8 encoding."
             )
 
         except Exception as e:
 
             error = str(e)
 
-    # =====================================================
-    # DASHBOARD
-    # =====================================================
+    # Reload in case upload changed them.
+    df_global = (
+        load_original_dataframe()
+    )
+
+    df_filtered = (
+        load_filtered_dataframe()
+    )
 
     dashboard = {
-
-        "summary":
-            None,
-
-        "preview":
-            None,
-
-        "columns":
-            None,
-
-        "heatmap":
-            None,
-
-        "ai_insights":
-            None,
-
-        "rows":
-            None,
-
-        "cols":
-            None,
-
-        "missing":
-            None,
-
-        "duplicates":
-            None,
-
-        "memory":
-            None,
-
-        "numeric_count":
-            None,
-
-        "categorical_count":
-            None,
-
-        "numeric_columns":
-            [],
-
-        "categorical_columns":
-            [],
-
-        "missing_table":
-            None,
-
-        "duplicate_rows":
-            None
+        "summary": None,
+        "preview": None,
+        "columns": None,
+        "heatmap": None,
+        "ai_insights": None,
+        "rows": None,
+        "cols": None,
+        "missing": None,
+        "duplicates": None,
+        "memory": None,
+        "numeric_count": None,
+        "categorical_count": None,
+        "numeric_columns": [],
+        "categorical_columns": [],
+        "missing_table": None,
+        "duplicate_rows": None
     }
 
     if df_global is not None:
@@ -1383,13 +1794,14 @@ def index():
         )
 
     return render_template(
-
         "index.html",
 
         **dashboard,
 
         dataset_name=(
-            dataset_name_global
+            session.get(
+                "dataset_name"
+            )
         ),
 
         plot_html=plot_html,
@@ -1398,25 +1810,17 @@ def index():
 
         selected_y=selected_y,
 
-        selected_chart=(
-            selected_chart
-        ),
+        selected_chart=selected_chart,
 
-        original_rows=(
-            original_rows
-        ),
+        original_rows=original_rows,
 
-        filtered_rows=(
-            filtered_rows
-        ),
+        filtered_rows=filtered_rows,
 
         filtered_preview=(
             filtered_preview
         ),
 
-        eda_result=(
-            eda_result
-        ),
+        eda_result=eda_result,
 
         selected_eda_column=(
             selected_eda_column
@@ -1424,9 +1828,7 @@ def index():
 
         error=error,
 
-        status_message=(
-            status_message
-        )
+        status_message=None
     )
 
 
@@ -1438,16 +1840,18 @@ def index():
     "/filter-data",
     methods=["POST"]
 )
+@login_required
 def filter_data():
 
-    global df_global
-    global df_filtered
-    global status_message
+    df_global = (
+        load_original_dataframe()
+    )
 
     if df_global is None:
 
-        status_message = (
-            "Please upload a dataset first."
+        flash(
+            "Please upload a dataset first.",
+            "warning"
         )
 
         return redirect(
@@ -1503,7 +1907,6 @@ def filter_data():
         .strip()
     )
 
-    # Search
     if search_text:
 
         filtered = (
@@ -1513,14 +1916,12 @@ def filter_data():
             )
         )
 
-    # Column filter
     if (
         filter_column
         and filter_column
         in filtered.columns
     ):
 
-        # Numeric
         if pd.api.types.is_numeric_dtype(
             filtered[
                 filter_column
@@ -1538,12 +1939,10 @@ def filter_data():
                     filtered = filtered[
                         filtered[
                             filter_column
-                        ]
-                        >= minimum
+                        ] >= minimum
                     ]
 
                 except ValueError:
-
                     pass
 
             if max_value:
@@ -1557,15 +1956,12 @@ def filter_data():
                     filtered = filtered[
                         filtered[
                             filter_column
-                        ]
-                        <= maximum
+                        ] <= maximum
                     ]
 
                 except ValueError:
-
                     pass
 
-        # Categorical
         elif filter_value:
 
             filtered = filtered[
@@ -1581,7 +1977,7 @@ def filter_data():
                 )
             ]
 
-    df_filtered = (
+    filtered = (
         filtered
         .copy()
         .reset_index(
@@ -1589,10 +1985,15 @@ def filter_data():
         )
     )
 
-    status_message = (
+    save_filtered_dataframe(
+        filtered
+    )
+
+    flash(
         f"Filter applied. Showing "
-        f"{len(df_filtered):,} of "
-        f"{len(df_global):,} rows."
+        f"{len(filtered):,} of "
+        f"{len(df_global):,} rows.",
+        "info"
     )
 
     return redirect(
@@ -1608,20 +2009,22 @@ def filter_data():
     "/reset-filters",
     methods=["POST"]
 )
+@login_required
 def reset_filters():
 
-    global df_global
-    global df_filtered
-    global status_message
+    df_global = (
+        load_original_dataframe()
+    )
 
     if df_global is not None:
 
-        df_filtered = (
-            df_global.copy()
+        save_filtered_dataframe(
+            df_global
         )
 
-        status_message = (
-            "Filters reset successfully."
+        flash(
+            "Filters reset successfully.",
+            "success"
         )
 
     return redirect(
@@ -1637,28 +2040,28 @@ def reset_filters():
     "/remove-duplicates",
     methods=["POST"]
 )
+@login_required
 def remove_duplicates():
 
-    global df_global
-    global df_filtered
-    global status_message
+    df = (
+        load_original_dataframe()
+    )
 
-    if df_global is None:
+    if df is None:
 
-        status_message = (
-            "Please upload a dataset first."
+        flash(
+            "Please upload a dataset first.",
+            "warning"
         )
 
         return redirect(
             url_for("index")
         )
 
-    before = len(
-        df_global
-    )
+    before = len(df)
 
-    df_global = (
-        df_global
+    df = (
+        df
         .drop_duplicates()
         .reset_index(
             drop=True
@@ -1666,25 +2069,24 @@ def remove_duplicates():
     )
 
     removed = (
-        before
-        - len(df_global)
+        before - len(df)
     )
 
-    df_filtered = (
-        df_global.copy()
-    )
+    save_original_dataframe(df)
+    save_filtered_dataframe(df)
 
     if removed > 0:
 
-        status_message = (
-            f"{removed:,} duplicate row(s) "
-            f"removed successfully."
+        flash(
+            f"{removed:,} duplicate row(s) removed.",
+            "success"
         )
 
     else:
 
-        status_message = (
-            "No duplicate rows were found."
+        flash(
+            "No duplicate rows were found.",
+            "info"
         )
 
     return redirect(
@@ -1693,35 +2095,35 @@ def remove_duplicates():
 
 
 # =========================================================
-# DROP MISSING ROWS
+# DROP MISSING
 # =========================================================
 
 @app.route(
     "/drop-missing",
     methods=["POST"]
 )
+@login_required
 def drop_missing():
 
-    global df_global
-    global df_filtered
-    global status_message
+    df = (
+        load_original_dataframe()
+    )
 
-    if df_global is None:
+    if df is None:
 
-        status_message = (
-            "Please upload a dataset first."
+        flash(
+            "Please upload a dataset first.",
+            "warning"
         )
 
         return redirect(
             url_for("index")
         )
 
-    before = len(
-        df_global
-    )
+    before = len(df)
 
-    df_global = (
-        df_global
+    df = (
+        df
         .dropna()
         .reset_index(
             drop=True
@@ -1729,17 +2131,16 @@ def drop_missing():
     )
 
     removed = (
-        before
-        - len(df_global)
+        before - len(df)
     )
 
-    df_filtered = (
-        df_global.copy()
-    )
+    save_original_dataframe(df)
+    save_filtered_dataframe(df)
 
-    status_message = (
+    flash(
         f"{removed:,} row(s) containing "
-        f"missing values were removed."
+        f"missing values were removed.",
+        "success"
     )
 
     return redirect(
@@ -1748,23 +2149,25 @@ def drop_missing():
 
 
 # =========================================================
-# FILL MISSING VALUES
+# FILL MISSING
 # =========================================================
 
 @app.route(
     "/fill-missing",
     methods=["POST"]
 )
+@login_required
 def fill_missing():
 
-    global df_global
-    global df_filtered
-    global status_message
+    df = (
+        load_original_dataframe()
+    )
 
-    if df_global is None:
+    if df is None:
 
-        status_message = (
-            "Please upload a dataset first."
+        flash(
+            "Please upload a dataset first.",
+            "warning"
         )
 
         return redirect(
@@ -1772,26 +2175,24 @@ def fill_missing():
         )
 
     missing_before = int(
-        df_global
-        .isnull()
+        df.isnull()
         .sum()
         .sum()
     )
 
     if missing_before == 0:
 
-        status_message = (
-            "No missing values were found."
+        flash(
+            "No missing values were found.",
+            "info"
         )
 
         return redirect(
             url_for("index")
         )
 
-    # Numeric -> Median
     numeric_columns = (
-        df_global
-        .select_dtypes(
+        df.select_dtypes(
             include="number"
         )
         .columns
@@ -1799,32 +2200,24 @@ def fill_missing():
 
     for column in numeric_columns:
 
-        if (
-            df_global[column]
-            .isnull()
-            .any()
-        ):
+        if df[column].isnull().any():
 
             median = (
-                df_global[column]
+                df[column]
                 .median()
             )
 
-            if pd.notna(
-                median
-            ):
+            if pd.notna(median):
 
-                df_global[column] = (
-                    df_global[column]
+                df[column] = (
+                    df[column]
                     .fillna(
                         median
                     )
                 )
 
-    # Categorical -> Mode
     categorical_columns = (
-        df_global
-        .select_dtypes(
+        df.select_dtypes(
             exclude="number"
         )
         .columns
@@ -1832,21 +2225,17 @@ def fill_missing():
 
     for column in categorical_columns:
 
-        if (
-            df_global[column]
-            .isnull()
-            .any()
-        ):
+        if df[column].isnull().any():
 
             mode = (
-                df_global[column]
+                df[column]
                 .mode()
             )
 
             if not mode.empty:
 
-                df_global[column] = (
-                    df_global[column]
+                df[column] = (
+                    df[column]
                     .fillna(
                         mode.iloc[0]
                     )
@@ -1854,16 +2243,15 @@ def fill_missing():
 
             else:
 
-                df_global[column] = (
-                    df_global[column]
+                df[column] = (
+                    df[column]
                     .fillna(
                         "Unknown"
                     )
                 )
 
     missing_after = int(
-        df_global
-        .isnull()
+        df.isnull()
         .sum()
         .sum()
     )
@@ -1873,14 +2261,14 @@ def fill_missing():
         - missing_after
     )
 
-    df_filtered = (
-        df_global.copy()
-    )
+    save_original_dataframe(df)
+    save_filtered_dataframe(df)
 
-    status_message = (
+    flash(
         f"{filled:,} missing value(s) filled. "
         f"Numeric columns used median and "
-        f"categorical columns used mode."
+        f"categorical columns used mode.",
+        "success"
     )
 
     return redirect(
@@ -1892,15 +2280,20 @@ def fill_missing():
 # DOWNLOAD CLEANED CSV
 # =========================================================
 
-@app.route(
-    "/download-csv"
-)
+@app.route("/download-csv")
+@login_required
 def download_csv():
 
-    global df_global
-    global dataset_name_global
+    df = (
+        load_original_dataframe()
+    )
 
-    if df_global is None:
+    if df is None:
+
+        flash(
+            "Please upload a dataset first.",
+            "warning"
+        )
 
         return redirect(
             url_for("index")
@@ -1909,11 +2302,9 @@ def download_csv():
     buffer = BytesIO()
 
     buffer.write(
-        df_global
-        .to_csv(
+        df.to_csv(
             index=False
-        )
-        .encode(
+        ).encode(
             "utf-8"
         )
     )
@@ -1921,8 +2312,7 @@ def download_csv():
     buffer.seek(0)
 
     name = os.path.splitext(
-        dataset_name_global
-        or "dataset"
+        current_dataset_name()
     )[0]
 
     return send_file(
@@ -1939,15 +2329,20 @@ def download_csv():
 # DOWNLOAD EXCEL
 # =========================================================
 
-@app.route(
-    "/download-excel"
-)
+@app.route("/download-excel")
+@login_required
 def download_excel():
 
-    global df_global
-    global dataset_name_global
+    df = (
+        load_original_dataframe()
+    )
 
-    if df_global is None:
+    if df is None:
+
+        flash(
+            "Please upload a dataset first.",
+            "warning"
+        )
 
         return redirect(
             url_for("index")
@@ -1960,7 +2355,7 @@ def download_excel():
         engine="openpyxl"
     ) as writer:
 
-        df_global.to_excel(
+        df.to_excel(
             writer,
             index=False,
             sheet_name="Cleaned Data"
@@ -1969,8 +2364,7 @@ def download_excel():
     buffer.seek(0)
 
     name = os.path.splitext(
-        dataset_name_global
-        or "dataset"
+        current_dataset_name()
     )[0]
 
     return send_file(
@@ -1988,18 +2382,23 @@ def download_excel():
 
 
 # =========================================================
-# DOWNLOAD FILTERED CSV
+# DOWNLOAD FILTERED
 # =========================================================
 
-@app.route(
-    "/download-filtered"
-)
+@app.route("/download-filtered")
+@login_required
 def download_filtered():
 
-    global df_filtered
-    global dataset_name_global
+    df = (
+        load_filtered_dataframe()
+    )
 
-    if df_filtered is None:
+    if df is None:
+
+        flash(
+            "Please upload a dataset first.",
+            "warning"
+        )
 
         return redirect(
             url_for("index")
@@ -2008,11 +2407,9 @@ def download_filtered():
     buffer = BytesIO()
 
     buffer.write(
-        df_filtered
-        .to_csv(
+        df.to_csv(
             index=False
-        )
-        .encode(
+        ).encode(
             "utf-8"
         )
     )
@@ -2020,8 +2417,7 @@ def download_filtered():
     buffer.seek(0)
 
     name = os.path.splitext(
-        dataset_name_global
-        or "dataset"
+        current_dataset_name()
     )[0]
 
     return send_file(
@@ -2032,6 +2428,75 @@ def download_filtered():
             f"{name}_filtered.csv"
         )
     )
+
+
+# =========================================================
+# ADMIN DASHBOARD
+# =========================================================
+
+@app.route("/admin")
+@login_required
+@admin_required
+def admin():
+
+    users = (
+        User.query
+        .order_by(
+            User.created_at.desc()
+        )
+        .all()
+    )
+
+    login_history = (
+        LoginHistory.query
+        .order_by(
+            LoginHistory.login_time.desc()
+        )
+        .limit(100)
+        .all()
+    )
+
+    total_users = (
+        User.query.count()
+    )
+
+    total_logins = (
+        LoginHistory.query.count()
+    )
+
+    return render_template(
+        "admin.html",
+        users=users,
+        login_history=login_history,
+        total_users=total_users,
+        total_logins=total_logins
+    )
+
+
+# =========================================================
+# 403
+# =========================================================
+
+@app.errorhandler(403)
+def forbidden(error):
+
+    flash(
+        "You do not have permission to access that page.",
+        "danger"
+    )
+
+    return redirect(
+        url_for("index")
+    )
+
+
+# =========================================================
+# CREATE DATABASE TABLES
+# =========================================================
+
+with app.app_context():
+
+    db.create_all()
 
 
 # =========================================================
@@ -2050,5 +2515,5 @@ if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=port,
-        debug=True
+        debug=False
     )
