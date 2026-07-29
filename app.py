@@ -2491,12 +2491,30 @@ def forbidden(error):
 
 
 # =========================================================
-# CREATE DATABASE TABLES
+# CREATE DATABASE TABLES + SET ADMIN
 # =========================================================
 
 with app.app_context():
 
+    # Create database tables if they do not already exist
     db.create_all()
+
+    # Get admin email from Render environment variable
+    admin_email = os.environ.get("ADMIN_EMAIL")
+
+    if admin_email:
+
+        admin_user = User.query.filter_by(
+            email=admin_email.strip().lower()
+        ).first()
+
+        if admin_user and not admin_user.is_admin:
+
+            admin_user.is_admin = True
+
+            db.session.commit()
+
+            print("Admin account configured successfully.")
 
 
 # =========================================================
