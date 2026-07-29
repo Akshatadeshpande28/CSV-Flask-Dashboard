@@ -17,101 +17,289 @@ os.makedirs(STATIC_FOLDER, exist_ok=True)
 df_global = None
 
 
-# 🤖 AI Insights
+# ===============================
+# AI Insights
+# ===============================
 def generate_ai_insights(df):
+
     insights = []
 
-    numeric_cols = df.select_dtypes(include="number")
+    rows = len(df)
+    cols = len(df.columns)
 
-    if not numeric_cols.empty:
-        corr = numeric_cols.corr()
-        max_corr = corr.unstack().sort_values(ascending=False)
-        max_corr = max_corr[max_corr < 1]
+    insights.append(
+        f"📊 Dataset contains {rows} rows and {cols} columns."
+    )
 
-        if not max_corr.empty:
-            pair = max_corr.idxmax()
-            insights.append(f"Strong relationship between {pair[0]} and {pair[1]}.")
+    missing = int(df.isnull().sum().sum())
 
-    missing = df.isnull().sum().sum()
-    if missing > 0:
-        insights.append(f"Dataset contains {missing} missing values.")
+    if missing:
+        insights.append(
+            f"⚠️ Dataset contains {missing} missing values."
+        )
+    else:
+        insights.append(
+            "✅ No missing values found."
+        )
 
-    insights.append(f"Dataset has {df.shape[0]} rows and {df.shape[1]} columns.")
+    duplicates = int(df.duplicated().sum())
+
+    if duplicates:
+        insights.append(
+            f"🔁 Dataset contains {duplicates} duplicate rows."
+        )
+    else:
+        insights.append(
+            "✅ No duplicate rows detected."
+        )
+
+    numeric = df.select_dtypes(include="number")
+
+    if len(numeric.columns) >= 2:
+
+        corr = numeric.corr()
+
+        strongest = (
+            corr.unstack()
+            .drop_duplicates()
+            .sort_values(ascending=False)
+        )
+
+        strongest = strongest[strongest < 1]
+
+        if not strongest.empty:
+
+            pair = strongest.idxmax()
+
+            insights.append(
+                f"📈 Strong correlation found between "
+                f"{pair[0]} and {pair[1]}."
+            )
 
     return " ".join(insights)
 
 
+# ===============================
+# Home Page
+# ===============================
 @app.route("/", methods=["GET", "POST"])
 def index():
+
     global df_global
 
     summary = None
     columns = None
-    heatmap_path = None
+    heatmap = None
     ai_insights = None
     plot_html = None
 
+    rows = None
+    cols = None
+    missing = None
+    duplicates = None
+    memory = None
+    dataset_name = None
+
+    error = None
+
     if request.method == "POST":
 
-        # Upload
-        file = request.files.get("file")
-        if file:
-            filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-            file.save(filepath)
-            df_global = pd.read_csv(filepath)
+        try:
 
-        if df_global is not None:
-            df = df_global
-            columns = df.columns.tolist()
+            # ===============================
+            # Upload CSV
+            # ===============================
 
-            # Summary
-            summary = df.describe().to_html(classes="table table-striped")
+            file = request.files.get("file")
 
-            # AI Insights
-            ai_insights = generate_ai_insights(df)
+            if file and file.filename != "":
 
-            # Heatmap
-            numeric_cols = df.select_dtypes(include="number")
-            if not numeric_cols.empty:
-                plt.figure(figsize=(8, 6))
-                sns.heatmap(numeric_cols.corr(), annot=True, cmap="coolwarm")
-                heatmap_path = os.path.join(STATIC_FOLDER, "heatmap.png")
-                plt.savefig(heatmap_path)
-                plt.close()
+                dataset_name = file.filename
 
-        # Chart Inputs
-        x_col = request.form.get("x_col")
-        y_col = request.form.get("y_col")
-        chart_type = request.form.get("chart_type")
+                filepath = os.path.join(
+                    UPLOAD_FOLDER,
+                    file.filename
+                )
 
-        if df_global is not None and chart_type:
+                file.save(filepath)
 
-            if chart_type == "scatter":
-                fig = px.scatter(df_global, x=x_col, y=y_col)
+                df_global = pd.read_csv(filepath)
 
-            elif chart_type == "bar":
-                fig = px.bar(df_global, x=x_col, y=y_col)
+            # ===============================
+            # Dataset Analysis
+            # ===============================
 
-            elif chart_type == "line":
-                fig = px.line(df_global, x=x_col, y=y_col)
+            if df_global is not None:
 
-            elif chart_type == "hist":
-                fig = px.histogram(df_global, x=y_col)
+                df = df_global
 
-            plot_html = pio.to_html(fig, full_html=False)
+                columns = df.columns.tolist()
+
+                rows = len(df)
+
+                cols = len(columns)
+
+                missing = int(
+                    df.isnull().sum().sum()
+                )
+
+                duplicates = int(
+                    df.duplicated().sum()
+                )
+
+                memory = round(
+                    df.memory_usage(deep=True).sum() / 1024,
+                    2
+                )
+
+                summary = (
+                    df.describe(include="all")
+                    .fillna("")
+                    .to_html(
+                        classes="table table-striped table-hover",
+                        border=0
+                    )
+                )
+
+                ai_insights = generate_ai_insights(df)
+
+                # ===============================
+                # Heatmap
+                # ===============================
+
+                numeric = df.select_dtypes(include="number")
+
+                if not numeric.empty:
+
+                    plt.figure(figsize=(10, 7))
+
+                    sns.heatmap(
+                        numeric.corr(),
+                        annot=True,
+                        cmap="RdYlBu",
+                        linewidths=.5,
+                        square=True
+                    )
+
+                    heatmap_file = os.path.join(
+                        STATIC_FOLDER,
+                        "heatmap.png"
+                    )
+
+                    plt.tight_layout()
+
+                    plt.savefig(heatmap_file)
+
+                    plt.close()
+
+                    heatmap = "/" + heatmap_file.replace("\\", "/")
+
+            # ===============================
+            # Interactive Plotly Charts
+            # ===============================
+
+            x_col = request.form.get("x_col")
+            y_col = request.form.get("y_col")
+            chart_type = request.form.get("chart_type")
+
+            if (
+                df_global is not None
+                and chart_type
+                and x_col
+            ):
+
+                if chart_type == "scatter":
+
+                    fig = px.scatter(
+                        df_global,
+                        x=x_col,
+                        y=y_col
+                    )
+
+                elif chart_type == "bar":
+
+                    fig = px.bar(
+                        df_global,
+                        x=x_col,
+                        y=y_col
+                    )
+
+                elif chart_type == "line":
+
+                    fig = px.line(
+                        df_global,
+                        x=x_col,
+                        y=y_col
+                    )
+
+                elif chart_type == "hist":
+
+                    fig = px.histogram(
+                        df_global,
+                        x=x_col
+                    )
+
+                else:
+
+                    fig = px.scatter(
+                        df_global,
+                        x=x_col,
+                        y=y_col
+                    )
+
+                fig.update_layout(
+                    template="plotly_white",
+                    height=550,
+                    title="Interactive Data Visualization"
+                )
+
+                plot_html = pio.to_html(
+                    fig,
+                    full_html=False
+                )
+
+        except Exception as e:
+
+            error = str(e)
 
     return render_template(
+
         "index.html",
+
         summary=summary,
+
         columns=columns,
-        heatmap=heatmap_path,
+
+        heatmap=heatmap,
+
         ai_insights=ai_insights,
-        plot_html=plot_html
+
+        plot_html=plot_html,
+
+        rows=rows,
+
+        cols=cols,
+
+        missing=missing,
+
+        duplicates=duplicates,
+
+        memory=memory,
+
+        dataset_name=dataset_name,
+
+        error=error
+
     )
 
 
-import os
-
+# ===============================
+# Run Flask
+# ===============================
 if __name__ == "__main__":
+
     port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+
+    app.run(
+        host="0.0.0.0",
+        port=port,
