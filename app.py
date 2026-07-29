@@ -2491,30 +2491,38 @@ def forbidden(error):
 
 
 # =========================================================
-# CREATE DATABASE TABLES + SET ADMIN
+# CREATE DATABASE TABLES + CONFIGURE ADMIN
 # =========================================================
 
 with app.app_context():
 
-    # Create database tables if they do not already exist
     db.create_all()
 
-    # Get admin email from Render environment variable
     admin_email = os.environ.get("ADMIN_EMAIL")
 
-    if admin_email:
+    if not admin_email:
+        print("ADMIN ERROR: ADMIN_EMAIL environment variable is not set.")
 
-        admin_user = User.query.filter_by(
-            email=admin_email.strip().lower()
+    else:
+        admin_email = admin_email.strip().lower()
+
+        print("ADMIN_EMAIL environment variable detected.")
+
+        admin_user = User.query.filter(
+            db.func.lower(User.email) == admin_email
         ).first()
 
-        if admin_user and not admin_user.is_admin:
+        if admin_user:
 
-            admin_user.is_admin = True
+            if not admin_user.is_admin:
+                admin_user.is_admin = True
+                db.session.commit()
+                print("ADMIN SUCCESS: User promoted to admin.")
+            else:
+                print("ADMIN SUCCESS: User is already an admin.")
 
-            db.session.commit()
-
-            print("Admin account configured successfully.")
+        else:
+            print("ADMIN ERROR: No registered user matches ADMIN_EMAIL.")
 
 
 # =========================================================
