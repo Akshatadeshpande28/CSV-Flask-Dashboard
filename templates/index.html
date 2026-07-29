@@ -1,83 +1,1078 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Data Insight Pro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+{% extends "base.html" %}
 
-<body style="background:#f4f6f9">
 
-<div class="container mt-4">
+{% block title %}
+Data Insight Pro | CSV Analytics Dashboard
+{% endblock %}
 
-    <h2 class="text-center mb-4">📊 Data Insight Pro</h2>
 
-    <!-- Upload -->
-    <div class="card p-4 mb-4">
-        <form method="POST" enctype="multipart/form-data">
-            <input class="form-control" type="file" name="file" required>
-            <button class="btn btn-primary mt-3">Upload & Analyze</button>
-        </form>
+{% block content %}
+
+
+<!-- =====================================================
+     PAGE HEADER
+===================================================== -->
+
+<section class="dashboard-header text-center">
+
+    <div class="header-icon">
+
+        <i class="bi bi-bar-chart-line-fill"></i>
+
     </div>
 
-    {% if columns %}
-    <!-- Controls -->
-    <div class="card p-4 mb-4">
-        <h5>Visualization Settings</h5>
+    <h1 class="fw-bold mb-2">
+        Data Insight Pro
+    </h1>
 
-        <form method="POST">
-            <select class="form-select mb-2" name="x_col">
-                {% for col in columns %}
-                <option value="{{ col }}">{{ col }}</option>
-                {% endfor %}
-            </select>
+    <p class="text-muted mb-0">
 
-            <select class="form-select mb-2" name="y_col">
-                {% for col in columns %}
-                <option value="{{ col }}">{{ col }}</option>
-                {% endfor %}
-            </select>
+        Upload your CSV dataset and transform raw data into
+        meaningful insights and interactive visualizations.
 
-            <select class="form-select mb-2" name="chart_type">
-                <option value="scatter">Scatter</option>
-                <option value="bar">Bar</option>
-                <option value="line">Line</option>
-                <option value="hist">Histogram</option>
-            </select>
+    </p>
 
-            <button class="btn btn-success">Generate Chart</button>
-        </form>
-    </div>
-    {% endif %}
+</section>
 
-    {% if ai_insights %}
-    <div class="card p-4 mb-4">
-        <h5>🤖 AI Insights</h5>
-        <p>{{ ai_insights }}</p>
-    </div>
-    {% endif %}
 
-    {% if summary %}
-    <div class="card p-4 mb-4">
-        <h5>📊 Summary</h5>
-        {{ summary|safe }}
-    </div>
-    {% endif %}
 
-    {% if plot_html %}
-    <div class="card p-4 mb-4">
-        <h5>📈 Interactive Chart</h5>
-        {{ plot_html|safe }}
-    </div>
-    {% endif %}
+<!-- =====================================================
+     ERROR MESSAGE
+===================================================== -->
 
-    {% if heatmap %}
-    <div class="card p-4 mb-4">
-        <h5>🔥 Correlation Heatmap</h5>
-        <img src="{{ heatmap }}" class="img-fluid">
-    </div>
-    {% endif %}
+{% if error %}
+
+<div class="alert alert-danger alert-dismissible fade show shadow-sm"
+     role="alert">
+
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+    <strong>Error:</strong>
+
+    {{ error }}
+
+    <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert">
+    </button>
 
 </div>
 
-</body>
-</html>
+{% endif %}
+
+
+
+<!-- =====================================================
+     CSV UPLOAD
+===================================================== -->
+
+<div class="card dashboard-section upload-card mb-4">
+
+    <div class="card-body p-4">
+
+        <div class="section-heading">
+
+            <div>
+
+                <h4 class="fw-semibold mb-1">
+
+                    <i class="bi bi-cloud-arrow-up-fill me-2 text-primary"></i>
+
+                    Upload Dataset
+
+                </h4>
+
+                <p class="text-muted mb-0">
+
+                    Upload a CSV file to begin your analysis.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            id="uploadForm">
+
+
+            <div class="upload-area mt-4"
+                 id="dropArea">
+
+
+                <div class="upload-icon">
+
+                    <i class="bi bi-file-earmark-spreadsheet"></i>
+
+                </div>
+
+
+                <h5 class="fw-semibold mt-3">
+
+                    Choose your CSV file
+
+                </h5>
+
+
+                <p class="text-muted">
+
+                    Select a CSV dataset from your device.
+
+                </p>
+
+
+                <input
+                    class="form-control"
+                    type="file"
+                    id="fileInput"
+                    name="file"
+                    accept=".csv,text/csv"
+                    required>
+
+
+                <div
+                    id="selectedFile"
+                    class="selected-file mt-3 d-none">
+                </div>
+
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="btn btn-primary btn-lg mt-3 px-4"
+                id="uploadButton">
+
+                <i class="bi bi-graph-up-arrow me-2"></i>
+
+                Upload & Analyze
+
+            </button>
+
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+{% if columns %}
+
+
+<!-- =====================================================
+     DATASET LOADED MESSAGE
+===================================================== -->
+
+<div class="alert alert-success dataset-success shadow-sm">
+
+    <div>
+
+        <i class="bi bi-check-circle-fill me-2"></i>
+
+        <strong>Dataset successfully loaded!</strong>
+
+        {% if dataset_name %}
+
+            <span class="ms-1">
+
+                {{ dataset_name }}
+
+            </span>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     KPI CARDS
+===================================================== -->
+
+<div class="row g-4 mb-4">
+
+
+    <!-- ROWS -->
+
+    <div class="col-xl-3 col-md-6">
+
+        <div class="card dashboard-card h-100">
+
+            <div class="card-body">
+
+                <div class="kpi-top">
+
+                    <div class="kpi-icon">
+
+                        <i class="bi bi-list-ul"></i>
+
+                    </div>
+
+                    <span class="kpi-label">
+                        Dataset
+                    </span>
+
+                </div>
+
+                <p class="text-muted mb-1">
+                    Total Rows
+                </p>
+
+                <h2 class="fw-bold mb-0">
+
+                    {{ "{:,}".format(rows or 0) }}
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- COLUMNS -->
+
+    <div class="col-xl-3 col-md-6">
+
+        <div class="card dashboard-card h-100">
+
+            <div class="card-body">
+
+                <div class="kpi-top">
+
+                    <div class="kpi-icon">
+
+                        <i class="bi bi-layout-three-columns"></i>
+
+                    </div>
+
+                    <span class="kpi-label">
+                        Structure
+                    </span>
+
+                </div>
+
+                <p class="text-muted mb-1">
+                    Total Columns
+                </p>
+
+                <h2 class="fw-bold mb-0">
+
+                    {{ cols or 0 }}
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- MISSING -->
+
+    <div class="col-xl-3 col-md-6">
+
+        <div class="card dashboard-card h-100">
+
+            <div class="card-body">
+
+                <div class="kpi-top">
+
+                    <div class="kpi-icon warning-icon">
+
+                        <i class="bi bi-exclamation-triangle"></i>
+
+                    </div>
+
+                    <span class="kpi-label">
+                        Data Quality
+                    </span>
+
+                </div>
+
+                <p class="text-muted mb-1">
+                    Missing Values
+                </p>
+
+                <h2 class="fw-bold mb-0">
+
+                    {{ "{:,}".format(missing or 0) }}
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- DUPLICATES -->
+
+    <div class="col-xl-3 col-md-6">
+
+        <div class="card dashboard-card h-100">
+
+            <div class="card-body">
+
+                <div class="kpi-top">
+
+                    <div class="kpi-icon duplicate-icon">
+
+                        <i class="bi bi-copy"></i>
+
+                    </div>
+
+                    <span class="kpi-label">
+                        Data Quality
+                    </span>
+
+                </div>
+
+                <p class="text-muted mb-1">
+                    Duplicate Rows
+                </p>
+
+                <h2 class="fw-bold mb-0">
+
+                    {{ "{:,}".format(duplicates or 0) }}
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     DATASET INFORMATION
+===================================================== -->
+
+<div class="card dashboard-section mb-4">
+
+    <div class="card-body p-4">
+
+
+        <div class="section-heading mb-4">
+
+            <div>
+
+                <h4 class="fw-semibold mb-1">
+
+                    <i class="bi bi-database-fill me-2 text-primary"></i>
+
+                    Dataset Information
+
+                </h4>
+
+                <p class="text-muted mb-0">
+
+                    Overview of the uploaded dataset.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="row g-3">
+
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="info-box">
+
+                    <span class="info-title">
+                        File Name
+                    </span>
+
+                    <span class="info-value text-truncate">
+
+                        {{ dataset_name or "Dataset" }}
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="info-box">
+
+                    <span class="info-title">
+                        Memory Usage
+                    </span>
+
+                    <span class="info-value">
+
+                        {{ memory or 0 }} KB
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="info-box">
+
+                    <span class="info-title">
+                        Numeric Columns
+                    </span>
+
+                    <span class="info-value">
+
+                        {{ numeric_count or 0 }}
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="info-box">
+
+                    <span class="info-title">
+                        Categorical Columns
+                    </span>
+
+                    <span class="info-value">
+
+                        {{ categorical_count or 0 }}
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     AI INSIGHTS
+===================================================== -->
+
+{% if ai_insights %}
+
+<div class="card dashboard-section mb-4">
+
+    <div class="card-body p-4">
+
+
+        <div class="section-heading">
+
+            <div>
+
+                <h4 class="fw-semibold mb-1">
+
+                    <i class="bi bi-stars me-2 text-primary"></i>
+
+                    Smart Data Insights
+
+                </h4>
+
+                <p class="text-muted mb-0">
+
+                    Automatically generated observations
+                    about your dataset.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="ai-insight-box mt-4">
+
+            <div class="ai-icon">
+
+                <i class="bi bi-robot"></i>
+
+            </div>
+
+            <div>
+
+                {{ ai_insights }}
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+
+<!-- =====================================================
+     VISUALIZATION SETTINGS
+===================================================== -->
+
+<div class="card dashboard-section mb-4">
+
+    <div class="card-body p-4">
+
+
+        <div class="section-heading mb-4">
+
+            <div>
+
+                <h4 class="fw-semibold mb-1">
+
+                    <i class="bi bi-sliders me-2 text-primary"></i>
+
+                    Visualization Builder
+
+                </h4>
+
+                <p class="text-muted mb-0">
+
+                    Select columns and generate an interactive chart.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <form method="POST">
+
+
+            <div class="row g-3">
+
+
+                <!-- X AXIS -->
+
+                <div class="col-lg-4">
+
+                    <label
+                        class="form-label fw-semibold">
+
+                        X-Axis
+
+                    </label>
+
+
+                    <select
+                        class="form-select"
+                        name="x_col"
+                        required>
+
+
+                        {% for col in columns %}
+
+                        <option
+                            value="{{ col }}"
+
+                            {% if selected_x == col %}
+                            selected
+                            {% endif %}>
+
+                            {{ col }}
+
+                        </option>
+
+                        {% endfor %}
+
+
+                    </select>
+
+                </div>
+
+
+
+                <!-- Y AXIS -->
+
+                <div class="col-lg-4">
+
+                    <label
+                        class="form-label fw-semibold">
+
+                        Y-Axis
+
+                    </label>
+
+
+                    <select
+                        class="form-select"
+                        name="y_col">
+
+
+                        {% for col in columns %}
+
+                        <option
+                            value="{{ col }}"
+
+                            {% if selected_y == col %}
+                            selected
+                            {% endif %}>
+
+                            {{ col }}
+
+                        </option>
+
+                        {% endfor %}
+
+
+                    </select>
+
+                </div>
+
+
+
+                <!-- CHART TYPE -->
+
+                <div class="col-lg-4">
+
+                    <label
+                        class="form-label fw-semibold">
+
+                        Chart Type
+
+                    </label>
+
+
+                    <select
+                        class="form-select"
+                        name="chart_type"
+                        required>
+
+
+                        <option
+                            value="scatter"
+                            {% if selected_chart == "scatter" %}
+                            selected
+                            {% endif %}>
+
+                            Scatter Plot
+
+                        </option>
+
+
+                        <option
+                            value="bar"
+                            {% if selected_chart == "bar" %}
+                            selected
+                            {% endif %}>
+
+                            Bar Chart
+
+                        </option>
+
+
+                        <option
+                            value="line"
+                            {% if selected_chart == "line" %}
+                            selected
+                            {% endif %}>
+
+                            Line Chart
+
+                        </option>
+
+
+                        <option
+                            value="hist"
+                            {% if selected_chart == "hist" %}
+                            selected
+                            {% endif %}>
+
+                            Histogram
+
+                        </option>
+
+
+                        <option
+                            value="pie"
+                            {% if selected_chart == "pie" %}
+                            selected
+                            {% endif %}>
+
+                            Pie Chart
+
+                        </option>
+
+
+                        <option
+                            value="box"
+                            {% if selected_chart == "box" %}
+                            selected
+                            {% endif %}>
+
+                            Box Plot
+
+                        </option>
+
+
+                    </select>
+
+                </div>
+
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="btn btn-success mt-4 px-4">
+
+                <i class="bi bi-bar-chart-fill me-2"></i>
+
+                Generate Chart
+
+            </button>
+
+
+        </form>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     INTERACTIVE CHART
+===================================================== -->
+
+{% if plot_html %}
+
+<div class="card dashboard-section mb-4">
+
+    <div class="card-body p-4">
+
+
+        <div class="section-heading mb-3">
+
+            <div>
+
+                <h4 class="fw-semibold mb-1">
+
+                    <i class="bi bi-graph-up-arrow me-2 text-primary"></i>
+
+                    Interactive Visualization
+
+                </h4>
+
+                <p class="text-muted mb-0">
+
+                    Hover, zoom and explore your visualization.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="chart-container">
+
+            {{ plot_html|safe }}
+
+        </div>
+
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+
+<!-- =====================================================
+     DATASET PREVIEW
+===================================================== -->
+
+{% if preview %}
+
+<div class="card dashboard-section mb-4">
+
+    <div class="card-body p-4">
+
+
+        <div class="section-heading mb-3">
+
+            <div>
+
+                <h4 class="fw-semibold mb-1">
+
+                    <i class="bi bi-table me-2 text-primary"></i>
+
+                    Dataset Preview
+
+                </h4>
+
+                <p class="text-muted mb-0">
+
+                    Showing the first 20 rows of your dataset.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-responsive data-table-wrapper">
+
+            {{ preview|safe }}
+
+        </div>
+
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+
+<!-- =====================================================
+     MISSING VALUE ANALYSIS
+===================================================== -->
+
+{% if missing_table %}
+
+<div class="card dashboard-section mb-4">
+
+    <div class="card-body p-4">
+
+
+        <div class="section-heading mb-3">
+
+            <div>
+
+                <h4 class="fw-semibold mb-1">
+
+                    <i class="bi bi-exclamation-circle me-2 text-warning"></i>
+
+                    Missing Value Analysis
+
+                </h4>
+
+                <p class="text-muted mb-0">
+
+                    Identify columns that may require data cleaning.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-responsive data-table-wrapper">
+
+            {{ missing_table|safe }}
+
+        </div>
+
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+
+<!-- =====================================================
+     DUPLICATE ROWS
+===================================================== -->
+
+{% if duplicates and duplicates > 0 %}
+
+<div class="card dashboard-section mb-4">
+
+    <div class="card-body p-4">
+
+
+        <div class="section-heading mb-3">
+
+            <div>
+
+                <h4 class="fw-semibold mb-1">
+
+                    <i class="bi bi-copy me-2 text-danger"></i>
+
+                    Duplicate Row Analysis
+
+                </h4>
+
+                <p class="text-muted mb-0">
+
+                    {{ duplicates }} duplicate row(s) detected.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {% if duplicate_rows %}
+
+        <div class="table-responsive data-table-wrapper">
+
+            {{ duplicate_rows|safe }}
+
+        </div>
+
+        {% endif %}
+
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+
+<!-- =====================================================
+     SUMMARY STATISTICS
+===================================================== -->
+
+{% if summary %}
+
+<div class="card dashboard-section mb-4">
+
+    <div class="card-body p-4">
+
+
+        <div class="section-heading mb-3">
+
+            <div>
+
+                <h4 class="fw-semibold mb-1">
+
+                    <i class="bi bi-clipboard-data me-2 text-primary"></i>
+
+                    Summary Statistics
+
+                </h4>
+
+                <p class="text-muted mb-0">
+
+                    Statistical overview of your dataset.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-responsive data-table-wrapper">
+
+            {{ summary|safe }}
+
+        </div>
+
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+
+<!-- =====================================================
+     CORRELATION HEATMAP
+===================================================== -->
+
+{% if heatmap %}
+
+<div class="card dashboard-section mb-4">
+
+    <div class="card-body p-4">
+
+
+        <div class="section-heading mb-3">
+
+            <div>
+
+                <h4 class="fw-semibold mb-1">
+
+                    <i class="bi bi-grid-3x3-gap-fill me-2 text-danger"></i>
+
+                    Correlation Heatmap
+
+                </h4>
+
+                <p class="text-muted mb-0">
+
+                    Explore relationships between numerical variables.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="heatmap-container text-center">
+
+            <img
+                src="{{ heatmap }}"
+                class="img-fluid rounded"
+                alt="Dataset Correlation Heatmap">
+
+        </div>
+
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+{% endif %}
+
+
+{% endblock %}
