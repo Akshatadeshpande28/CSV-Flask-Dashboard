@@ -34,10 +34,13 @@ os.makedirs(STATIC_FOLDER, exist_ok=True)
 # GLOBAL DATA
 # =========================================================
 
+# Master dataset after cleaning
 df_global = None
-dataset_name_global = None
 
-# Stores messages after cleaning operations
+# Temporary filtered dataset
+df_filtered = None
+
+dataset_name_global = None
 status_message = None
 
 
@@ -56,10 +59,7 @@ def generate_ai_insights(df):
         f"📊 The dataset contains {rows:,} rows and {cols} columns."
     )
 
-    # -----------------------------------------------------
     # Missing values
-    # -----------------------------------------------------
-
     missing = int(df.isnull().sum().sum())
 
     if missing > 0:
@@ -74,7 +74,7 @@ def generate_ai_insights(df):
 
         insights.append(
             f"⚠️ There are {missing:,} missing values "
-            f"({missing_percentage:.2f}% of the dataset)."
+            f"({missing_percentage:.2f}% of all values)."
         )
 
     else:
@@ -83,17 +83,13 @@ def generate_ai_insights(df):
             "✅ No missing values were detected."
         )
 
-    # -----------------------------------------------------
     # Duplicates
-    # -----------------------------------------------------
-
     duplicates = int(df.duplicated().sum())
 
     if duplicates > 0:
 
         insights.append(
-            f"🔁 The dataset contains "
-            f"{duplicates:,} duplicate rows."
+            f"🔁 {duplicates:,} duplicate rows were detected."
         )
 
     else:
@@ -102,28 +98,18 @@ def generate_ai_insights(df):
             "✅ No duplicate rows were detected."
         )
 
-    # -----------------------------------------------------
     # Numeric columns
-    # -----------------------------------------------------
-
-    numeric = df.select_dtypes(
-        include="number"
-    )
+    numeric = df.select_dtypes(include="number")
 
     if len(numeric.columns) > 0:
 
         insights.append(
             f"🔢 {len(numeric.columns)} numeric columns "
-            f"are available for statistical analysis."
+            f"are available for analysis."
         )
 
-    # -----------------------------------------------------
     # Categorical columns
-    # -----------------------------------------------------
-
-    categorical = df.select_dtypes(
-        exclude="number"
-    )
+    categorical = df.select_dtypes(exclude="number")
 
     if len(categorical.columns) > 0:
 
@@ -132,10 +118,7 @@ def generate_ai_insights(df):
             f"columns were detected."
         )
 
-    # -----------------------------------------------------
     # Strongest correlation
-    # -----------------------------------------------------
-
     if len(numeric.columns) >= 2:
 
         corr = numeric.corr()
@@ -165,8 +148,8 @@ def generate_ai_insights(df):
             col2 = strongest_index[1]
 
             insights.append(
-                f"📈 The strongest numeric relationship "
-                f"is between {col1} and {col2} "
+                f"📈 The strongest numeric relationship is between "
+                f"{col1} and {col2} "
                 f"(correlation: {strongest_value:.2f})."
             )
 
@@ -174,16 +157,12 @@ def generate_ai_insights(df):
 
 
 # =========================================================
-# PREPARE DASHBOARD DATA
+# DASHBOARD DATA
 # =========================================================
 
 def prepare_dashboard_data(df):
 
     dashboard = {}
-
-    # -----------------------------------------------------
-    # Basic information
-    # -----------------------------------------------------
 
     dashboard["columns"] = df.columns.tolist()
 
@@ -200,23 +179,18 @@ def prepare_dashboard_data(df):
     )
 
     dashboard["memory"] = round(
-        df.memory_usage(
-            deep=True
-        ).sum() / 1024,
+        df.memory_usage(deep=True).sum() / 1024,
         2
     )
 
-    # -----------------------------------------------------
-    # Column type information
-    # -----------------------------------------------------
-
+    # Column types
     numeric_columns = df.select_dtypes(
         include="number"
-    ).columns
+    ).columns.tolist()
 
     categorical_columns = df.select_dtypes(
         exclude="number"
-    ).columns
+    ).columns.tolist()
 
     dashboard["numeric_count"] = len(
         numeric_columns
@@ -226,12 +200,13 @@ def prepare_dashboard_data(df):
         categorical_columns
     )
 
-    # -----------------------------------------------------
-    # Dataset Preview
-    # -----------------------------------------------------
+    dashboard["numeric_columns"] = numeric_columns
 
+    dashboard["categorical_columns"] = categorical_columns
+
+    # Dataset Preview
     dashboard["preview"] = (
-        df.head(20)
+        df.head(50)
         .to_html(
             classes=(
                 "table table-bordered "
@@ -242,25 +217,17 @@ def prepare_dashboard_data(df):
         )
     )
 
-    # -----------------------------------------------------
     # Summary Statistics
-    # -----------------------------------------------------
-
     try:
 
         summary_df = (
-            df.describe(
-                include="all"
-            )
+            df.describe(include="all")
             .fillna("")
         )
 
         dashboard["summary"] = (
             summary_df.to_html(
-                classes=(
-                    "table table-striped "
-                    "table-hover"
-                ),
+                classes="table table-striped table-hover",
                 border=0
             )
         )
@@ -269,31 +236,18 @@ def prepare_dashboard_data(df):
 
         dashboard["summary"] = None
 
-    # -----------------------------------------------------
-    # Missing Value Analysis
-    # -----------------------------------------------------
-
+    # Missing analysis
     rows = len(df)
+
+    missing_counts = df.isnull().sum()
 
     if rows > 0:
 
-        missing_counts = (
-            df.isnull()
-            .sum()
-        )
-
         missing_percentage = (
-            missing_counts
-            / rows
-            * 100
+            missing_counts / rows * 100
         ).round(2)
 
     else:
-
-        missing_counts = pd.Series(
-            0,
-            index=df.columns
-        )
 
         missing_percentage = pd.Series(
             0,
@@ -302,8 +256,7 @@ def prepare_dashboard_data(df):
 
     missing_df = pd.DataFrame({
 
-        "Column":
-            df.columns,
+        "Column": df.columns,
 
         "Missing Values":
             missing_counts.values,
@@ -313,36 +266,23 @@ def prepare_dashboard_data(df):
 
     })
 
-    missing_df = (
-        missing_df
-        .sort_values(
-            "Missing Values",
-            ascending=False
-        )
+    missing_df = missing_df.sort_values(
+        "Missing Values",
+        ascending=False
     )
 
     dashboard["missing_table"] = (
         missing_df.to_html(
-            classes=(
-                "table table-striped "
-                "table-hover"
-            ),
+            classes="table table-striped table-hover",
             index=False,
             border=0
         )
     )
 
-    # -----------------------------------------------------
-    # Duplicate Rows
-    # -----------------------------------------------------
-
-    duplicates = int(
-        df.duplicated().sum()
-    )
-
+    # Duplicate rows
     dashboard["duplicate_rows"] = None
 
-    if duplicates > 0:
+    if dashboard["duplicates"] > 0:
 
         duplicate_df = (
             df[df.duplicated()]
@@ -351,27 +291,18 @@ def prepare_dashboard_data(df):
 
         dashboard["duplicate_rows"] = (
             duplicate_df.to_html(
-                classes=(
-                    "table table-striped "
-                    "table-hover"
-                ),
+                classes="table table-striped table-hover",
                 index=False,
                 border=0
             )
         )
 
-    # -----------------------------------------------------
     # Insights
-    # -----------------------------------------------------
-
     dashboard["ai_insights"] = (
         generate_ai_insights(df)
     )
 
-    # -----------------------------------------------------
-    # Correlation Heatmap
-    # -----------------------------------------------------
-
+    # Heatmap
     dashboard["heatmap"] = None
 
     numeric_df = df.select_dtypes(
@@ -380,9 +311,7 @@ def prepare_dashboard_data(df):
 
     if len(numeric_df.columns) >= 2:
 
-        correlation_matrix = (
-            numeric_df.corr()
-        )
+        correlation_matrix = numeric_df.corr()
 
         plt.figure(
             figsize=(10, 7)
@@ -403,9 +332,7 @@ def prepare_dashboard_data(df):
 
         plt.tight_layout()
 
-        heatmap_filename = (
-            "heatmap.png"
-        )
+        heatmap_filename = "heatmap.png"
 
         heatmap_path = os.path.join(
             STATIC_FOLDER,
@@ -421,21 +348,60 @@ def prepare_dashboard_data(df):
         plt.close()
 
         dashboard["heatmap"] = (
-            "/static/"
-            + heatmap_filename
+            "/static/" + heatmap_filename
         )
 
     return dashboard
 
 
 # =========================================================
-# HOME PAGE
+# SEARCH DATA
+# =========================================================
+
+def search_dataframe(df, search_text):
+
+    if not search_text:
+        return df.copy()
+
+    search_text = str(
+        search_text
+    ).lower().strip()
+
+    mask = pd.Series(
+        False,
+        index=df.index
+    )
+
+    for column in df.columns:
+
+        column_text = (
+            df[column]
+            .astype(str)
+            .str.lower()
+        )
+
+        mask = mask | column_text.str.contains(
+            search_text,
+            na=False,
+            regex=False
+        )
+
+    return (
+        df[mask]
+        .copy()
+        .reset_index(drop=True)
+    )
+
+
+# =========================================================
+# HOME
 # =========================================================
 
 @app.route("/", methods=["GET", "POST"])
 def index():
 
     global df_global
+    global df_filtered
     global dataset_name_global
     global status_message
 
@@ -446,21 +412,15 @@ def index():
     selected_y = None
     selected_chart = None
 
-    # -----------------------------------------------------
-    # CSV UPLOAD / CHART REQUEST
-    # -----------------------------------------------------
-
     if request.method == "POST":
 
         try:
 
-            file = request.files.get(
-                "file"
-            )
+            file = request.files.get("file")
 
-            # =================================================
+            # -------------------------------------------------
             # FILE UPLOAD
-            # =================================================
+            # -------------------------------------------------
 
             if file and file.filename:
 
@@ -481,21 +441,21 @@ def index():
                     file.filename
                 )
 
-                file.save(
-                    filepath
-                )
+                file.save(filepath)
 
                 df_global = pd.read_csv(
                     filepath
                 )
 
+                df_filtered = df_global.copy()
+
                 status_message = (
                     "Dataset uploaded successfully."
                 )
 
-            # =================================================
-            # CHART GENERATION
-            # =================================================
+            # -------------------------------------------------
+            # CHART
+            # -------------------------------------------------
 
             selected_x = request.form.get(
                 "x_col"
@@ -510,130 +470,91 @@ def index():
             )
 
             if (
-                df_global is not None
+                df_filtered is not None
                 and selected_chart
                 and selected_x
             ):
 
-                df = df_global
+                chart_df = df_filtered
 
-                if selected_x not in df.columns:
+                if selected_x not in chart_df.columns:
 
                     raise ValueError(
-                        "Selected X-axis column "
-                        "does not exist."
+                        "Selected X-axis column does not exist."
                     )
-
-                # ---------------------------------------------
-                # Scatter Plot
-                # ---------------------------------------------
 
                 if selected_chart == "scatter":
 
                     if (
                         selected_y
-                        and selected_y
-                        in df.columns
+                        and selected_y in chart_df.columns
                     ):
 
                         fig = px.scatter(
-                            df,
+                            chart_df,
                             x=selected_x,
                             y=selected_y,
-                            title=(
-                                f"{selected_x} "
-                                f"vs {selected_y}"
-                            )
+                            title=f"{selected_x} vs {selected_y}"
                         )
 
                     else:
 
                         raise ValueError(
-                            "Please select a valid "
-                            "Y-axis column."
+                            "Please select a valid Y-axis column."
                         )
-
-                # ---------------------------------------------
-                # Bar Chart
-                # ---------------------------------------------
 
                 elif selected_chart == "bar":
 
                     if (
                         selected_y
-                        and selected_y
-                        in df.columns
+                        and selected_y in chart_df.columns
                     ):
 
                         fig = px.bar(
-                            df,
+                            chart_df,
                             x=selected_x,
                             y=selected_y,
-                            title=(
-                                f"{selected_y} "
-                                f"by {selected_x}"
-                            )
+                            title=f"{selected_y} by {selected_x}"
                         )
 
                     else:
 
                         raise ValueError(
-                            "Please select a valid "
-                            "Y-axis column."
+                            "Please select a valid Y-axis column."
                         )
-
-                # ---------------------------------------------
-                # Line Chart
-                # ---------------------------------------------
 
                 elif selected_chart == "line":
 
                     if (
                         selected_y
-                        and selected_y
-                        in df.columns
+                        and selected_y in chart_df.columns
                     ):
 
                         fig = px.line(
-                            df,
+                            chart_df,
                             x=selected_x,
                             y=selected_y,
-                            title=(
-                                f"{selected_y} "
-                                f"Trend by {selected_x}"
-                            )
+                            title=f"{selected_y} Trend by {selected_x}"
                         )
 
                     else:
 
                         raise ValueError(
-                            "Please select a valid "
-                            "Y-axis column."
+                            "Please select a valid Y-axis column."
                         )
-
-                # ---------------------------------------------
-                # Histogram
-                # ---------------------------------------------
 
                 elif selected_chart == "hist":
 
                     fig = px.histogram(
-                        df,
+                        chart_df,
                         x=selected_x,
-                        title=(
-                            f"Distribution of "
-                            f"{selected_x}"
-                        )
+                        title=f"Distribution of {selected_x}"
                     )
-
-                # ---------------------------------------------
-                # Pie Chart
-                # ---------------------------------------------
 
                 elif selected_chart == "pie":
 
                     value_counts = (
-                        df[selected_x]
+                        chart_df[selected_x]
                         .value_counts()
                         .head(15)
                         .reset_index()
@@ -648,61 +569,40 @@ def index():
                         value_counts,
                         names=selected_x,
                         values="Count",
-                        title=(
-                            f"Distribution of "
-                            f"{selected_x}"
-                        )
+                        title=f"Distribution of {selected_x}"
                     )
-
-                # ---------------------------------------------
-                # Box Plot
-                # ---------------------------------------------
 
                 elif selected_chart == "box":
 
                     if (
                         selected_y
-                        and selected_y
-                        in df.columns
+                        and selected_y in chart_df.columns
                     ):
 
                         fig = px.box(
-                            df,
+                            chart_df,
                             x=selected_x,
                             y=selected_y,
-                            title=(
-                                f"{selected_y} "
-                                f"by {selected_x}"
-                            )
+                            title=f"{selected_y} by {selected_x}"
                         )
 
                     else:
 
                         fig = px.box(
-                            df,
+                            chart_df,
                             y=selected_x,
-                            title=(
-                                f"Distribution of "
-                                f"{selected_x}"
-                            )
+                            title=f"Distribution of {selected_x}"
                         )
 
                 else:
 
                     raise ValueError(
-                        "Invalid chart type."
+                        "Invalid chart type selected."
                     )
 
-                # ---------------------------------------------
-                # Plotly styling
-                # ---------------------------------------------
-
                 fig.update_layout(
-
                     template="plotly_white",
-
                     height=550,
-
                     margin=dict(
                         l=40,
                         r=40,
@@ -736,17 +636,16 @@ def index():
         except UnicodeDecodeError:
 
             error = (
-                "The CSV encoding is not supported. "
-                "Please save the file using UTF-8."
+                "Please save your CSV using UTF-8 encoding."
             )
 
         except Exception as e:
 
             error = str(e)
 
-    # =====================================================
-    # PREPARE DASHBOARD
-    # =====================================================
+    # -----------------------------------------------------
+    # Dashboard
+    # -----------------------------------------------------
 
     dashboard = {
 
@@ -762,6 +661,8 @@ def index():
         "memory": None,
         "numeric_count": None,
         "categorical_count": None,
+        "numeric_columns": [],
+        "categorical_columns": [],
         "missing_table": None,
         "duplicate_rows": None
 
@@ -769,9 +670,36 @@ def index():
 
     if df_global is not None:
 
-        dashboard = (
-            prepare_dashboard_data(
-                df_global
+        dashboard = prepare_dashboard_data(
+            df_global
+        )
+
+    filtered_rows = None
+    original_rows = None
+    filtered_preview = None
+
+    if df_global is not None:
+
+        original_rows = len(
+            df_global
+        )
+
+    if df_filtered is not None:
+
+        filtered_rows = len(
+            df_filtered
+        )
+
+        filtered_preview = (
+            df_filtered
+            .head(50)
+            .to_html(
+                classes=(
+                    "table table-bordered "
+                    "table-hover table-striped"
+                ),
+                index=False,
+                border=0
             )
         )
 
@@ -779,59 +707,196 @@ def index():
 
         "index.html",
 
-        summary=dashboard["summary"],
-
-        preview=dashboard["preview"],
-
-        columns=dashboard["columns"],
-
-        heatmap=dashboard["heatmap"],
-
-        ai_insights=dashboard[
-            "ai_insights"
-        ],
-
-        rows=dashboard["rows"],
-
-        cols=dashboard["cols"],
-
-        missing=dashboard["missing"],
-
-        duplicates=dashboard[
-            "duplicates"
-        ],
-
-        memory=dashboard["memory"],
-
-        numeric_count=dashboard[
-            "numeric_count"
-        ],
-
-        categorical_count=dashboard[
-            "categorical_count"
-        ],
-
-        missing_table=dashboard[
-            "missing_table"
-        ],
-
-        duplicate_rows=dashboard[
-            "duplicate_rows"
-        ],
+        **dashboard,
 
         dataset_name=dataset_name_global,
 
         plot_html=plot_html,
 
         selected_x=selected_x,
-
         selected_y=selected_y,
-
         selected_chart=selected_chart,
+
+        original_rows=original_rows,
+        filtered_rows=filtered_rows,
+        filtered_preview=filtered_preview,
 
         error=error,
 
         status_message=status_message
+    )
+
+
+# =========================================================
+# FILTER DATA
+# =========================================================
+
+@app.route(
+    "/filter-data",
+    methods=["POST"]
+)
+def filter_data():
+
+    global df_global
+    global df_filtered
+    global status_message
+
+    if df_global is None:
+
+        status_message = (
+            "Please upload a dataset first."
+        )
+
+        return redirect(
+            url_for("index")
+        )
+
+    filtered = df_global.copy()
+
+    search_text = (
+        request.form
+        .get("search_text", "")
+        .strip()
+    )
+
+    filter_column = (
+        request.form
+        .get("filter_column", "")
+        .strip()
+    )
+
+    filter_value = (
+        request.form
+        .get("filter_value", "")
+        .strip()
+    )
+
+    min_value = (
+        request.form
+        .get("min_value", "")
+        .strip()
+    )
+
+    max_value = (
+        request.form
+        .get("max_value", "")
+        .strip()
+    )
+
+    # -----------------------------------------------------
+    # Global Search
+    # -----------------------------------------------------
+
+    if search_text:
+
+        filtered = search_dataframe(
+            filtered,
+            search_text
+        )
+
+    # -----------------------------------------------------
+    # Column filter
+    # -----------------------------------------------------
+
+    if (
+        filter_column
+        and filter_column in filtered.columns
+    ):
+
+        # Numeric
+        if pd.api.types.is_numeric_dtype(
+            filtered[filter_column]
+        ):
+
+            if min_value:
+
+                try:
+
+                    minimum = float(
+                        min_value
+                    )
+
+                    filtered = filtered[
+                        filtered[filter_column]
+                        >= minimum
+                    ]
+
+                except ValueError:
+                    pass
+
+            if max_value:
+
+                try:
+
+                    maximum = float(
+                        max_value
+                    )
+
+                    filtered = filtered[
+                        filtered[filter_column]
+                        <= maximum
+                    ]
+
+                except ValueError:
+                    pass
+
+        # Categorical
+        elif filter_value:
+
+            filtered = filtered[
+                filtered[filter_column]
+                .astype(str)
+                .str.contains(
+                    filter_value,
+                    case=False,
+                    na=False,
+                    regex=False
+                )
+            ]
+
+    df_filtered = (
+        filtered
+        .copy()
+        .reset_index(drop=True)
+    )
+
+    status_message = (
+        f"Filter applied. "
+        f"Showing {len(df_filtered):,} "
+        f"of {len(df_global):,} rows."
+    )
+
+    return redirect(
+        url_for("index")
+    )
+
+
+# =========================================================
+# RESET FILTERS
+# =========================================================
+
+@app.route(
+    "/reset-filters",
+    methods=["POST"]
+)
+def reset_filters():
+
+    global df_global
+    global df_filtered
+    global status_message
+
+    if df_global is not None:
+
+        df_filtered = (
+            df_global.copy()
+        )
+
+        status_message = (
+            "Filters reset successfully."
+        )
+
+    return redirect(
+        url_for("index")
     )
 
 
@@ -846,13 +911,10 @@ def index():
 def remove_duplicates():
 
     global df_global
+    global df_filtered
     global status_message
 
     if df_global is None:
-
-        status_message = (
-            "Please upload a dataset first."
-        )
 
         return redirect(
             url_for("index")
@@ -868,26 +930,19 @@ def remove_duplicates():
         .reset_index(drop=True)
     )
 
-    after = len(
-        df_global
-    )
-
     removed = (
-        before - after
+        before - len(df_global)
     )
 
-    if removed > 0:
+    df_filtered = (
+        df_global.copy()
+    )
 
-        status_message = (
-            f"{removed} duplicate row(s) "
-            f"removed successfully."
-        )
-
-    else:
-
-        status_message = (
-            "No duplicate rows were found."
-        )
+    status_message = (
+        f"{removed} duplicate row(s) removed."
+        if removed > 0
+        else "No duplicate rows were found."
+    )
 
     return redirect(
         url_for("index")
@@ -895,7 +950,7 @@ def remove_duplicates():
 
 
 # =========================================================
-# DROP ROWS WITH MISSING VALUES
+# DROP MISSING ROWS
 # =========================================================
 
 @app.route(
@@ -905,13 +960,10 @@ def remove_duplicates():
 def drop_missing():
 
     global df_global
+    global df_filtered
     global status_message
 
     if df_global is None:
-
-        status_message = (
-            "Please upload a dataset first."
-        )
 
         return redirect(
             url_for("index")
@@ -927,27 +979,18 @@ def drop_missing():
         .reset_index(drop=True)
     )
 
-    after = len(
-        df_global
-    )
-
     removed = (
-        before - after
+        before - len(df_global)
     )
 
-    if removed > 0:
+    df_filtered = (
+        df_global.copy()
+    )
 
-        status_message = (
-            f"{removed} row(s) containing "
-            f"missing values were removed."
-        )
-
-    else:
-
-        status_message = (
-            "No rows with missing values "
-            "were found."
-        )
+    status_message = (
+        f"{removed} row(s) containing "
+        f"missing values were removed."
+    )
 
     return redirect(
         url_for("index")
@@ -965,13 +1008,10 @@ def drop_missing():
 def fill_missing():
 
     global df_global
+    global df_filtered
     global status_message
 
     if df_global is None:
-
-        status_message = (
-            "Please upload a dataset first."
-        )
 
         return redirect(
             url_for("index")
@@ -994,10 +1034,7 @@ def fill_missing():
             url_for("index")
         )
 
-    # -----------------------------------------------------
-    # Numeric columns → Median
-    # -----------------------------------------------------
-
+    # Numeric → Median
     numeric_columns = (
         df_global
         .select_dtypes(
@@ -1010,26 +1047,19 @@ def fill_missing():
 
         if df_global[column].isnull().any():
 
-            median_value = (
+            median = (
                 df_global[column]
                 .median()
             )
 
-            if pd.notna(
-                median_value
-            ):
+            if pd.notna(median):
 
                 df_global[column] = (
                     df_global[column]
-                    .fillna(
-                        median_value
-                    )
+                    .fillna(median)
                 )
 
-    # -----------------------------------------------------
-    # Categorical columns → Mode
-    # -----------------------------------------------------
-
+    # Categorical → Mode
     categorical_columns = (
         df_global
         .select_dtypes(
@@ -1042,17 +1072,17 @@ def fill_missing():
 
         if df_global[column].isnull().any():
 
-            mode_values = (
+            mode = (
                 df_global[column]
                 .mode()
             )
 
-            if not mode_values.empty:
+            if not mode.empty:
 
                 df_global[column] = (
                     df_global[column]
                     .fillna(
-                        mode_values.iloc[0]
+                        mode.iloc[0]
                     )
                 )
 
@@ -1060,9 +1090,7 @@ def fill_missing():
 
                 df_global[column] = (
                     df_global[column]
-                    .fillna(
-                        "Unknown"
-                    )
+                    .fillna("Unknown")
                 )
 
     missing_after = int(
@@ -1077,11 +1105,14 @@ def fill_missing():
         - missing_after
     )
 
+    df_filtered = (
+        df_global.copy()
+    )
+
     status_message = (
-        f"{filled} missing value(s) "
-        f"filled successfully. "
-        f"Numeric columns used the median "
-        f"and categorical columns used the mode."
+        f"{filled} missing value(s) filled. "
+        f"Numeric values used median and "
+        f"categorical values used mode."
     )
 
     return redirect(
@@ -1107,52 +1138,35 @@ def download_csv():
             url_for("index")
         )
 
-    csv_buffer = BytesIO()
+    buffer = BytesIO()
 
-    csv_data = (
+    buffer.write(
         df_global
-        .to_csv(
-            index=False
-        )
+        .to_csv(index=False)
         .encode("utf-8")
     )
 
-    csv_buffer.write(
-        csv_data
+    buffer.seek(0)
+
+    name = (
+        os.path.splitext(
+            dataset_name_global
+            or "dataset"
+        )[0]
     )
-
-    csv_buffer.seek(0)
-
-    filename = (
-        "cleaned_dataset.csv"
-    )
-
-    if dataset_name_global:
-
-        original_name = (
-            os.path.splitext(
-                dataset_name_global
-            )[0]
-        )
-
-        filename = (
-            f"{original_name}_cleaned.csv"
-        )
 
     return send_file(
-
-        csv_buffer,
-
+        buffer,
         mimetype="text/csv",
-
         as_attachment=True,
-
-        download_name=filename
+        download_name=(
+            f"{name}_cleaned.csv"
+        )
     )
 
 
 # =========================================================
-# DOWNLOAD EXCEL
+# DOWNLOAD CLEANED EXCEL
 # =========================================================
 
 @app.route(
@@ -1169,10 +1183,10 @@ def download_excel():
             url_for("index")
         )
 
-    excel_buffer = BytesIO()
+    buffer = BytesIO()
 
     with pd.ExcelWriter(
-        excel_buffer,
+        buffer,
         engine="openpyxl"
     ) as writer:
 
@@ -1182,42 +1196,76 @@ def download_excel():
             sheet_name="Cleaned Data"
         )
 
-    excel_buffer.seek(0)
+    buffer.seek(0)
 
-    filename = (
-        "cleaned_dataset.xlsx"
+    name = (
+        os.path.splitext(
+            dataset_name_global
+            or "dataset"
+        )[0]
     )
 
-    if dataset_name_global:
-
-        original_name = (
-            os.path.splitext(
-                dataset_name_global
-            )[0]
-        )
-
-        filename = (
-            f"{original_name}_cleaned.xlsx"
-        )
-
     return send_file(
-
-        excel_buffer,
-
+        buffer,
         mimetype=(
             "application/"
             "vnd.openxmlformats-officedocument."
             "spreadsheetml.sheet"
         ),
-
         as_attachment=True,
-
-        download_name=filename
+        download_name=(
+            f"{name}_cleaned.xlsx"
+        )
     )
 
 
 # =========================================================
-# RUN APPLICATION
+# DOWNLOAD FILTERED CSV
+# =========================================================
+
+@app.route(
+    "/download-filtered"
+)
+def download_filtered():
+
+    global df_filtered
+    global dataset_name_global
+
+    if df_filtered is None:
+
+        return redirect(
+            url_for("index")
+        )
+
+    buffer = BytesIO()
+
+    buffer.write(
+        df_filtered
+        .to_csv(index=False)
+        .encode("utf-8")
+    )
+
+    buffer.seek(0)
+
+    name = (
+        os.path.splitext(
+            dataset_name_global
+            or "dataset"
+        )[0]
+    )
+
+    return send_file(
+        buffer,
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name=(
+            f"{name}_filtered.csv"
+        )
+    )
+
+
+# =========================================================
+# RUN APP
 # =========================================================
 
 if __name__ == "__main__":

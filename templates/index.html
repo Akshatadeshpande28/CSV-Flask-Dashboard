@@ -2,7 +2,7 @@
 
 
 {% block title %}
-Data Insight Pro | CSV Analytics Dashboard
+Data Insight Pro | CSV Analytics
 {% endblock %}
 
 
@@ -10,7 +10,7 @@ Data Insight Pro | CSV Analytics Dashboard
 
 
 <!-- =====================================================
-     PAGE HEADER
+     HERO
 ===================================================== -->
 
 <section class="dashboard-header text-center">
@@ -21,33 +21,32 @@ Data Insight Pro | CSV Analytics Dashboard
 
     </div>
 
-    <h1 class="fw-bold mb-2">
+    <h1 class="fw-bold">
+
         Data Insight Pro
+
     </h1>
 
-    <p class="text-muted mb-0">
+    <p class="text-muted">
 
-        Upload your CSV dataset and transform raw data into
-        meaningful insights and interactive visualizations.
+        Upload, clean, filter, analyze and visualize
+        your CSV datasets in one place.
 
     </p>
 
 </section>
 
 
-
 <!-- =====================================================
-     ERROR MESSAGE
+     ERROR
 ===================================================== -->
 
 {% if error %}
 
-<div class="alert alert-danger alert-dismissible fade show shadow-sm"
-     role="alert">
+<div
+    class="alert alert-danger alert-dismissible fade show">
 
     <i class="bi bi-exclamation-triangle-fill me-2"></i>
-
-    <strong>Error:</strong>
 
     {{ error }}
 
@@ -62,36 +61,47 @@ Data Insight Pro | CSV Analytics Dashboard
 {% endif %}
 
 
-
 <!-- =====================================================
-     CSV UPLOAD
+     STATUS
 ===================================================== -->
 
-<div class="card dashboard-section upload-card mb-4">
+{% if status_message %}
+
+<div class="alert alert-info shadow-sm">
+
+    <i class="bi bi-info-circle-fill me-2"></i>
+
+    {{ status_message }}
+
+</div>
+
+{% endif %}
+
+
+<!-- =====================================================
+     UPLOAD
+===================================================== -->
+
+<div class="card dashboard-section mb-4">
 
     <div class="card-body p-4">
 
-        <div class="section-heading">
+        <h4 class="fw-semibold">
 
-            <div>
+            <i
+                class="bi bi-cloud-arrow-up-fill
+                me-2 text-primary">
+            </i>
 
-                <h4 class="fw-semibold mb-1">
+            Upload Dataset
 
-                    <i class="bi bi-cloud-arrow-up-fill me-2 text-primary"></i>
+        </h4>
 
-                    Upload Dataset
+        <p class="text-muted">
 
-                </h4>
+            Select a CSV file to start your analysis.
 
-                <p class="text-muted mb-0">
-
-                    Upload a CSV file to begin your analysis.
-
-                </p>
-
-            </div>
-
-        </div>
+        </p>
 
 
         <form
@@ -100,27 +110,30 @@ Data Insight Pro | CSV Analytics Dashboard
             id="uploadForm">
 
 
-            <div class="upload-area mt-4"
-                 id="dropArea">
-
+            <div
+                class="upload-area"
+                id="dropArea">
 
                 <div class="upload-icon">
 
-                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                    <i
+                        class="bi
+                        bi-file-earmark-spreadsheet">
+                    </i>
 
                 </div>
 
 
-                <h5 class="fw-semibold mt-3">
+                <h5 class="mt-3">
 
-                    Choose your CSV file
+                    Choose CSV File
 
                 </h5>
 
 
                 <p class="text-muted">
 
-                    Select a CSV dataset from your device.
+                    CSV files only
 
                 </p>
 
@@ -139,21 +152,22 @@ Data Insight Pro | CSV Analytics Dashboard
                     class="selected-file mt-3 d-none">
                 </div>
 
-
             </div>
 
 
             <button
+                class="btn btn-primary mt-3 px-4"
                 type="submit"
-                class="btn btn-primary btn-lg mt-3 px-4"
                 id="uploadButton">
 
-                <i class="bi bi-graph-up-arrow me-2"></i>
+                <i
+                    class="bi
+                    bi-graph-up-arrow me-2">
+                </i>
 
                 Upload & Analyze
 
             </button>
-
 
         </form>
 
@@ -162,36 +176,25 @@ Data Insight Pro | CSV Analytics Dashboard
 </div>
 
 
-
 {% if columns %}
 
 
 <!-- =====================================================
-     DATASET LOADED MESSAGE
+     DATASET SUCCESS
 ===================================================== -->
 
-<div class="alert alert-success dataset-success shadow-sm">
+<div class="alert alert-success shadow-sm">
 
-    <div>
+    <i
+        class="bi
+        bi-check-circle-fill me-2">
+    </i>
 
-        <i class="bi bi-check-circle-fill me-2"></i>
+    <strong>Dataset loaded:</strong>
 
-        <strong>Dataset successfully loaded!</strong>
-
-        {% if dataset_name %}
-
-            <span class="ms-1">
-
-                {{ dataset_name }}
-
-            </span>
-
-        {% endif %}
-
-    </div>
+    {{ dataset_name }}
 
 </div>
-
 
 
 <!-- =====================================================
@@ -201,33 +204,25 @@ Data Insight Pro | CSV Analytics Dashboard
 <div class="row g-4 mb-4">
 
 
-    <!-- ROWS -->
-
     <div class="col-xl-3 col-md-6">
 
         <div class="card dashboard-card h-100">
 
             <div class="card-body">
 
-                <div class="kpi-top">
+                <div class="kpi-icon">
 
-                    <div class="kpi-icon">
-
-                        <i class="bi bi-list-ul"></i>
-
-                    </div>
-
-                    <span class="kpi-label">
-                        Dataset
-                    </span>
+                    <i class="bi bi-list-ul"></i>
 
                 </div>
 
                 <p class="text-muted mb-1">
+
                     Total Rows
+
                 </p>
 
-                <h2 class="fw-bold mb-0">
+                <h2>
 
                     {{ "{:,}".format(rows or 0) }}
 
@@ -240,34 +235,28 @@ Data Insight Pro | CSV Analytics Dashboard
     </div>
 
 
-
-    <!-- COLUMNS -->
-
     <div class="col-xl-3 col-md-6">
 
         <div class="card dashboard-card h-100">
 
             <div class="card-body">
 
-                <div class="kpi-top">
+                <div class="kpi-icon">
 
-                    <div class="kpi-icon">
-
-                        <i class="bi bi-layout-three-columns"></i>
-
-                    </div>
-
-                    <span class="kpi-label">
-                        Structure
-                    </span>
+                    <i
+                        class="bi
+                        bi-layout-three-columns">
+                    </i>
 
                 </div>
 
                 <p class="text-muted mb-1">
-                    Total Columns
+
+                    Columns
+
                 </p>
 
-                <h2 class="fw-bold mb-0">
+                <h2>
 
                     {{ cols or 0 }}
 
@@ -280,34 +269,28 @@ Data Insight Pro | CSV Analytics Dashboard
     </div>
 
 
-
-    <!-- MISSING -->
-
     <div class="col-xl-3 col-md-6">
 
         <div class="card dashboard-card h-100">
 
             <div class="card-body">
 
-                <div class="kpi-top">
+                <div class="kpi-icon warning-icon">
 
-                    <div class="kpi-icon warning-icon">
-
-                        <i class="bi bi-exclamation-triangle"></i>
-
-                    </div>
-
-                    <span class="kpi-label">
-                        Data Quality
-                    </span>
+                    <i
+                        class="bi
+                        bi-exclamation-triangle">
+                    </i>
 
                 </div>
 
                 <p class="text-muted mb-1">
+
                     Missing Values
+
                 </p>
 
-                <h2 class="fw-bold mb-0">
+                <h2>
 
                     {{ "{:,}".format(missing or 0) }}
 
@@ -320,34 +303,25 @@ Data Insight Pro | CSV Analytics Dashboard
     </div>
 
 
-
-    <!-- DUPLICATES -->
-
     <div class="col-xl-3 col-md-6">
 
         <div class="card dashboard-card h-100">
 
             <div class="card-body">
 
-                <div class="kpi-top">
+                <div class="kpi-icon">
 
-                    <div class="kpi-icon duplicate-icon">
-
-                        <i class="bi bi-copy"></i>
-
-                    </div>
-
-                    <span class="kpi-label">
-                        Data Quality
-                    </span>
+                    <i class="bi bi-copy"></i>
 
                 </div>
 
                 <p class="text-muted mb-1">
+
                     Duplicate Rows
+
                 </p>
 
-                <h2 class="fw-bold mb-0">
+                <h2>
 
                     {{ "{:,}".format(duplicates or 0) }}
 
@@ -359,9 +333,7 @@ Data Insight Pro | CSV Analytics Dashboard
 
     </div>
 
-
 </div>
-
 
 
 <!-- =====================================================
@@ -372,31 +344,19 @@ Data Insight Pro | CSV Analytics Dashboard
 
     <div class="card-body p-4">
 
+        <h4>
 
-        <div class="section-heading mb-4">
+            <i
+                class="bi
+                bi-database-fill me-2 text-primary">
+            </i>
 
-            <div>
+            Dataset Information
 
-                <h4 class="fw-semibold mb-1">
-
-                    <i class="bi bi-database-fill me-2 text-primary"></i>
-
-                    Dataset Information
-
-                </h4>
-
-                <p class="text-muted mb-0">
-
-                    Overview of the uploaded dataset.
-
-                </p>
-
-            </div>
-
-        </div>
+        </h4>
 
 
-        <div class="row g-3">
+        <div class="row g-3 mt-2">
 
 
             <div class="col-lg-3 col-md-6">
@@ -404,31 +364,14 @@ Data Insight Pro | CSV Analytics Dashboard
                 <div class="info-box">
 
                     <span class="info-title">
-                        File Name
-                    </span>
 
-                    <span class="info-value text-truncate">
+                        File
 
-                        {{ dataset_name or "Dataset" }}
-
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <div class="col-lg-3 col-md-6">
-
-                <div class="info-box">
-
-                    <span class="info-title">
-                        Memory Usage
                     </span>
 
                     <span class="info-value">
 
-                        {{ memory or 0 }} KB
+                        {{ dataset_name }}
 
                     </span>
 
@@ -442,12 +385,35 @@ Data Insight Pro | CSV Analytics Dashboard
                 <div class="info-box">
 
                     <span class="info-title">
+
+                        Memory
+
+                    </span>
+
+                    <span class="info-value">
+
+                        {{ memory }} KB
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="info-box">
+
+                    <span class="info-title">
+
                         Numeric Columns
+
                     </span>
 
                     <span class="info-value">
 
-                        {{ numeric_count or 0 }}
+                        {{ numeric_count }}
 
                     </span>
 
@@ -461,12 +427,14 @@ Data Insight Pro | CSV Analytics Dashboard
                 <div class="info-box">
 
                     <span class="info-title">
+
                         Categorical Columns
+
                     </span>
 
                     <span class="info-value">
 
-                        {{ categorical_count or 0 }}
+                        {{ categorical_count }}
 
                     </span>
 
@@ -482,9 +450,320 @@ Data Insight Pro | CSV Analytics Dashboard
 </div>
 
 
+<!-- =====================================================
+     FILTER & EXPLORE
+===================================================== -->
+
+<div class="card dashboard-section mb-4">
+
+    <div class="card-body p-4">
+
+
+        <h4>
+
+            <i
+                class="bi
+                bi-funnel-fill me-2 text-primary">
+            </i>
+
+            Filter & Explore Data
+
+        </h4>
+
+
+        <p class="text-muted">
+
+            Search across your dataset or filter
+            a specific column.
+
+        </p>
+
+
+        <form
+            method="POST"
+            action="{{ url_for('filter_data') }}">
+
+
+            <!-- SEARCH -->
+
+            <div class="mb-4">
+
+                <label class="form-label fw-semibold">
+
+                    Search Dataset
+
+                </label>
+
+
+                <div class="input-group">
+
+                    <span class="input-group-text">
+
+                        <i class="bi bi-search"></i>
+
+                    </span>
+
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="search_text"
+                        placeholder="Search any value...">
+
+                </div>
+
+            </div>
+
+
+            <div class="row g-3">
+
+
+                <!-- FILTER COLUMN -->
+
+                <div class="col-lg-4">
+
+                    <label class="form-label fw-semibold">
+
+                        Filter Column
+
+                    </label>
+
+
+                    <select
+                        class="form-select"
+                        name="filter_column"
+                        id="filterColumn">
+
+
+                        <option value="">
+
+                            Select column
+
+                        </option>
+
+
+                        {% for col in columns %}
+
+                        <option
+                            value="{{ col }}"
+                            data-numeric="{% if col in numeric_columns %}true{% else %}false{% endif %}">
+
+                            {{ col }}
+
+                        </option>
+
+                        {% endfor %}
+
+
+                    </select>
+
+                </div>
+
+
+                <!-- CATEGORICAL VALUE -->
+
+                <div
+                    class="col-lg-4"
+                    id="categoricalFilter">
+
+                    <label class="form-label fw-semibold">
+
+                        Value
+
+                    </label>
+
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="filter_value"
+                        placeholder="Enter value...">
+
+                </div>
+
+
+                <!-- NUMERIC MIN -->
+
+                <div
+                    class="col-lg-2 numeric-filter d-none">
+
+                    <label class="form-label fw-semibold">
+
+                        Minimum
+
+                    </label>
+
+
+                    <input
+                        type="number"
+                        step="any"
+                        class="form-control"
+                        name="min_value">
+
+                </div>
+
+
+                <!-- NUMERIC MAX -->
+
+                <div
+                    class="col-lg-2 numeric-filter d-none">
+
+                    <label class="form-label fw-semibold">
+
+                        Maximum
+
+                    </label>
+
+
+                    <input
+                        type="number"
+                        step="any"
+                        class="form-control"
+                        name="max_value">
+
+                </div>
+
+
+            </div>
+
+
+            <div class="d-flex flex-wrap gap-2 mt-4">
+
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+
+                    <i class="bi bi-funnel me-2"></i>
+
+                    Apply Filter
+
+                </button>
+
+
+            </div>
+
+
+        </form>
+
+
+        <form
+            method="POST"
+            action="{{ url_for('reset_filters') }}"
+            class="mt-2">
+
+            <button
+                type="submit"
+                class="btn btn-outline-secondary">
+
+                <i
+                    class="bi
+                    bi-arrow-counterclockwise me-2">
+                </i>
+
+                Reset Filters
+
+            </button>
+
+        </form>
+
+
+        {% if filtered_rows is not none %}
+
+        <div class="filter-result mt-4">
+
+            <i
+                class="bi
+                bi-filter-circle-fill me-2">
+            </i>
+
+            Showing
+
+            <strong>
+                {{ "{:,}".format(filtered_rows) }}
+            </strong>
+
+            of
+
+            <strong>
+                {{ "{:,}".format(original_rows) }}
+            </strong>
+
+            rows.
+
+        </div>
+
+        {% endif %}
+
+
+        <div class="mt-3">
+
+            <a
+                href="{{ url_for('download_filtered') }}"
+                class="btn btn-outline-primary">
+
+                <i
+                    class="bi
+                    bi-download me-2">
+                </i>
+
+                Download Filtered CSV
+
+            </a>
+
+        </div>
+
+
+    </div>
+
+</div>
+
 
 <!-- =====================================================
- <!-- =====================================================
+     FILTERED PREVIEW
+===================================================== -->
+
+{% if filtered_preview %}
+
+<div class="card dashboard-section mb-4">
+
+    <div class="card-body p-4">
+
+        <h4>
+
+            <i
+                class="bi
+                bi-table me-2 text-primary">
+            </i>
+
+            Data Preview
+
+        </h4>
+
+
+        <p class="text-muted">
+
+            Showing up to the first 50 filtered rows.
+
+        </p>
+
+
+        <div
+            class="table-responsive
+            data-table-wrapper">
+
+            {{ filtered_preview|safe }}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+<!-- =====================================================
      DATA CLEANING
 ===================================================== -->
 
@@ -492,46 +771,24 @@ Data Insight Pro | CSV Analytics Dashboard
 
     <div class="card-body p-4">
 
-        <div class="section-heading mb-4">
+        <h4>
 
-            <div>
+            <i
+                class="bi
+                bi-magic me-2 text-primary">
+            </i>
 
-                <h4 class="fw-semibold mb-1">
+            Data Cleaning
 
-                    <i class="bi bi-stars me-2 text-primary"></i>
-
-                    Data Cleaning
-
-                </h4>
-
-                <p class="text-muted mb-0">
-
-                    Clean common data quality issues
-                    before continuing your analysis.
-
-                </p>
-
-            </div>
-
-        </div>
+        </h4>
 
 
-        <!-- CLEANING STATUS -->
+        <p class="text-muted">
 
-        {% if status_message %}
+            Fix common data quality issues.
 
-        <div class="alert alert-info">
+        </p>
 
-            <i class="bi bi-info-circle-fill me-2"></i>
-
-            {{ status_message }}
-
-        </div>
-
-        {% endif %}
-
-
-        <!-- DATA QUALITY NUMBERS -->
 
         <div class="row g-3 mb-4">
 
@@ -548,7 +805,7 @@ Data Insight Pro | CSV Analytics Dashboard
 
                         </span>
 
-                        <h3 class="mb-0 mt-1">
+                        <h3>
 
                             {{ missing or 0 }}
 
@@ -556,10 +813,12 @@ Data Insight Pro | CSV Analytics Dashboard
 
                     </div>
 
-
                     <div class="cleaning-icon">
 
-                        <i class="bi bi-exclamation-triangle"></i>
+                        <i
+                            class="bi
+                            bi-exclamation-triangle">
+                        </i>
 
                     </div>
 
@@ -580,14 +839,13 @@ Data Insight Pro | CSV Analytics Dashboard
 
                         </span>
 
-                        <h3 class="mb-0 mt-1">
+                        <h3>
 
                             {{ duplicates or 0 }}
 
                         </h3>
 
                     </div>
-
 
                     <div class="cleaning-icon">
 
@@ -599,24 +857,17 @@ Data Insight Pro | CSV Analytics Dashboard
 
             </div>
 
-
         </div>
 
-
-        <!-- CLEANING ACTIONS -->
 
         <div class="d-flex flex-wrap gap-2">
 
 
-            <!-- FILL MISSING -->
-
             <form
-                action="{{ url_for('fill_missing') }}"
-                method="POST">
+                method="POST"
+                action="{{ url_for('fill_missing') }}">
 
-                <button
-                    type="submit"
-                    class="btn btn-primary">
+                <button class="btn btn-primary">
 
                     <i class="bi bi-magic me-2"></i>
 
@@ -627,21 +878,12 @@ Data Insight Pro | CSV Analytics Dashboard
             </form>
 
 
-            <!-- DROP MISSING -->
-
             <form
-                action="{{ url_for('drop_missing') }}"
                 method="POST"
+                action="{{ url_for('drop_missing') }}"
+                onsubmit="return confirm('Remove rows containing missing values?');">
 
-                onsubmit="
-                return confirm(
-                    'Remove all rows containing missing values?'
-                );
-                ">
-
-                <button
-                    type="submit"
-                    class="btn btn-warning">
+                <button class="btn btn-warning">
 
                     <i class="bi bi-trash3 me-2"></i>
 
@@ -652,15 +894,11 @@ Data Insight Pro | CSV Analytics Dashboard
             </form>
 
 
-            <!-- REMOVE DUPLICATES -->
-
             <form
-                action="{{ url_for('remove_duplicates') }}"
-                method="POST">
+                method="POST"
+                action="{{ url_for('remove_duplicates') }}">
 
-                <button
-                    type="submit"
-                    class="btn btn-danger">
+                <button class="btn btn-danger">
 
                     <i class="bi bi-copy me-2"></i>
 
@@ -677,9 +915,7 @@ Data Insight Pro | CSV Analytics Dashboard
         <hr class="my-4">
 
 
-        <!-- DOWNLOAD SECTION -->
-
-        <h5 class="fw-semibold mb-3">
+        <h5>
 
             <i class="bi bi-download me-2"></i>
 
@@ -688,14 +924,17 @@ Data Insight Pro | CSV Analytics Dashboard
         </h5>
 
 
-        <div class="d-flex flex-wrap gap-2">
+        <div class="d-flex flex-wrap gap-2 mt-3">
 
 
             <a
                 href="{{ url_for('download_csv') }}"
                 class="btn btn-outline-success">
 
-                <i class="bi bi-filetype-csv me-2"></i>
+                <i
+                    class="bi
+                    bi-filetype-csv me-2">
+                </i>
 
                 Download CSV
 
@@ -706,7 +945,10 @@ Data Insight Pro | CSV Analytics Dashboard
                 href="{{ url_for('download_excel') }}"
                 class="btn btn-outline-success">
 
-                <i class="bi bi-file-earmark-excel me-2"></i>
+                <i
+                    class="bi
+                    bi-file-earmark-excel me-2">
+                </i>
 
                 Download Excel
 
@@ -715,11 +957,13 @@ Data Insight Pro | CSV Analytics Dashboard
 
         </div>
 
-
     </div>
 
 </div>
-     AI INSIGHTS
+
+
+<!-- =====================================================
+     SMART INSIGHTS
 ===================================================== -->
 
 {% if ai_insights %}
@@ -728,32 +972,19 @@ Data Insight Pro | CSV Analytics Dashboard
 
     <div class="card-body p-4">
 
+        <h4>
 
-        <div class="section-heading">
+            <i
+                class="bi
+                bi-stars me-2 text-primary">
+            </i>
 
-            <div>
+            Smart Data Insights
 
-                <h4 class="fw-semibold mb-1">
-
-                    <i class="bi bi-stars me-2 text-primary"></i>
-
-                    Smart Data Insights
-
-                </h4>
-
-                <p class="text-muted mb-0">
-
-                    Automatically generated observations
-                    about your dataset.
-
-                </p>
-
-            </div>
-
-        </div>
+        </h4>
 
 
-        <div class="ai-insight-box mt-4">
+        <div class="ai-insight-box mt-3">
 
             <div class="ai-icon">
 
@@ -769,7 +1000,6 @@ Data Insight Pro | CSV Analytics Dashboard
 
         </div>
 
-
     </div>
 
 </div>
@@ -777,37 +1007,31 @@ Data Insight Pro | CSV Analytics Dashboard
 {% endif %}
 
 
-
 <!-- =====================================================
-     VISUALIZATION SETTINGS
+     VISUALIZATION BUILDER
 ===================================================== -->
 
 <div class="card dashboard-section mb-4">
 
     <div class="card-body p-4">
 
+        <h4>
 
-        <div class="section-heading mb-4">
+            <i
+                class="bi
+                bi-bar-chart-fill me-2 text-primary">
+            </i>
 
-            <div>
+            Visualization Builder
 
-                <h4 class="fw-semibold mb-1">
+        </h4>
 
-                    <i class="bi bi-sliders me-2 text-primary"></i>
 
-                    Visualization Builder
+        <p class="text-muted">
 
-                </h4>
+            Charts use the currently filtered dataset.
 
-                <p class="text-muted mb-0">
-
-                    Select columns and generate an interactive chart.
-
-                </p>
-
-            </div>
-
-        </div>
+        </p>
 
 
         <form method="POST">
@@ -816,29 +1040,23 @@ Data Insight Pro | CSV Analytics Dashboard
             <div class="row g-3">
 
 
-                <!-- X AXIS -->
-
                 <div class="col-lg-4">
 
-                    <label
-                        class="form-label fw-semibold">
+                    <label class="form-label fw-semibold">
 
                         X-Axis
 
                     </label>
-
 
                     <select
                         class="form-select"
                         name="x_col"
                         required>
 
-
                         {% for col in columns %}
 
                         <option
                             value="{{ col }}"
-
                             {% if selected_x == col %}
                             selected
                             {% endif %}>
@@ -849,35 +1067,27 @@ Data Insight Pro | CSV Analytics Dashboard
 
                         {% endfor %}
 
-
                     </select>
 
                 </div>
 
 
-
-                <!-- Y AXIS -->
-
                 <div class="col-lg-4">
 
-                    <label
-                        class="form-label fw-semibold">
+                    <label class="form-label fw-semibold">
 
                         Y-Axis
 
                     </label>
 
-
                     <select
                         class="form-select"
                         name="y_col">
-
 
                         {% for col in columns %}
 
                         <option
                             value="{{ col }}"
-
                             {% if selected_y == col %}
                             selected
                             {% endif %}>
@@ -888,110 +1098,62 @@ Data Insight Pro | CSV Analytics Dashboard
 
                         {% endfor %}
 
-
                     </select>
 
                 </div>
 
 
-
-                <!-- CHART TYPE -->
-
                 <div class="col-lg-4">
 
-                    <label
-                        class="form-label fw-semibold">
+                    <label class="form-label fw-semibold">
 
                         Chart Type
 
                     </label>
-
 
                     <select
                         class="form-select"
                         name="chart_type"
                         required>
 
-
-                        <option
-                            value="scatter"
-                            {% if selected_chart == "scatter" %}
-                            selected
-                            {% endif %}>
-
+                        <option value="scatter">
                             Scatter Plot
-
                         </option>
 
-
-                        <option
-                            value="bar"
-                            {% if selected_chart == "bar" %}
-                            selected
-                            {% endif %}>
-
+                        <option value="bar">
                             Bar Chart
-
                         </option>
 
-
-                        <option
-                            value="line"
-                            {% if selected_chart == "line" %}
-                            selected
-                            {% endif %}>
-
+                        <option value="line">
                             Line Chart
-
                         </option>
 
-
-                        <option
-                            value="hist"
-                            {% if selected_chart == "hist" %}
-                            selected
-                            {% endif %}>
-
+                        <option value="hist">
                             Histogram
-
                         </option>
 
-
-                        <option
-                            value="pie"
-                            {% if selected_chart == "pie" %}
-                            selected
-                            {% endif %}>
-
+                        <option value="pie">
                             Pie Chart
-
                         </option>
 
-
-                        <option
-                            value="box"
-                            {% if selected_chart == "box" %}
-                            selected
-                            {% endif %}>
-
+                        <option value="box">
                             Box Plot
-
                         </option>
-
 
                     </select>
 
                 </div>
 
-
             </div>
 
 
             <button
-                type="submit"
-                class="btn btn-success mt-4 px-4">
+                class="btn btn-success mt-4">
 
-                <i class="bi bi-bar-chart-fill me-2"></i>
+                <i
+                    class="bi
+                    bi-graph-up-arrow me-2">
+                </i>
 
                 Generate Chart
 
@@ -1000,15 +1162,13 @@ Data Insight Pro | CSV Analytics Dashboard
 
         </form>
 
-
     </div>
 
 </div>
 
 
-
 <!-- =====================================================
-     INTERACTIVE CHART
+     CHART
 ===================================================== -->
 
 {% if plot_html %}
@@ -1017,29 +1177,16 @@ Data Insight Pro | CSV Analytics Dashboard
 
     <div class="card-body p-4">
 
+        <h4>
 
-        <div class="section-heading mb-3">
+            <i
+                class="bi
+                bi-graph-up me-2 text-primary">
+            </i>
 
-            <div>
+            Interactive Visualization
 
-                <h4 class="fw-semibold mb-1">
-
-                    <i class="bi bi-graph-up-arrow me-2 text-primary"></i>
-
-                    Interactive Visualization
-
-                </h4>
-
-                <p class="text-muted mb-0">
-
-                    Hover, zoom and explore your visualization.
-
-                </p>
-
-            </div>
-
-        </div>
-
+        </h4>
 
         <div class="chart-container">
 
@@ -1047,62 +1194,11 @@ Data Insight Pro | CSV Analytics Dashboard
 
         </div>
 
-
     </div>
 
 </div>
 
 {% endif %}
-
-
-
-<!-- =====================================================
-     DATASET PREVIEW
-===================================================== -->
-
-{% if preview %}
-
-<div class="card dashboard-section mb-4">
-
-    <div class="card-body p-4">
-
-
-        <div class="section-heading mb-3">
-
-            <div>
-
-                <h4 class="fw-semibold mb-1">
-
-                    <i class="bi bi-table me-2 text-primary"></i>
-
-                    Dataset Preview
-
-                </h4>
-
-                <p class="text-muted mb-0">
-
-                    Showing the first 20 rows of your dataset.
-
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="table-responsive data-table-wrapper">
-
-            {{ preview|safe }}
-
-        </div>
-
-
-    </div>
-
-</div>
-
-{% endif %}
-
 
 
 <!-- =====================================================
@@ -1115,37 +1211,25 @@ Data Insight Pro | CSV Analytics Dashboard
 
     <div class="card-body p-4">
 
+        <h4>
 
-        <div class="section-heading mb-3">
+            <i
+                class="bi
+                bi-exclamation-circle me-2 text-warning">
+            </i>
 
-            <div>
+            Missing Value Analysis
 
-                <h4 class="fw-semibold mb-1">
+        </h4>
 
-                    <i class="bi bi-exclamation-circle me-2 text-warning"></i>
-
-                    Missing Value Analysis
-
-                </h4>
-
-                <p class="text-muted mb-0">
-
-                    Identify columns that may require data cleaning.
-
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="table-responsive data-table-wrapper">
+        <div
+            class="table-responsive
+            data-table-wrapper mt-3">
 
             {{ missing_table|safe }}
 
         </div>
 
-
     </div>
 
 </div>
@@ -1153,51 +1237,34 @@ Data Insight Pro | CSV Analytics Dashboard
 {% endif %}
 
 
-
 <!-- =====================================================
-     DUPLICATE ROWS
+     DUPLICATES
 ===================================================== -->
 
-{% if duplicates and duplicates > 0 %}
+{% if duplicate_rows %}
 
 <div class="card dashboard-section mb-4">
 
     <div class="card-body p-4">
 
+        <h4>
 
-        <div class="section-heading mb-3">
+            <i
+                class="bi
+                bi-copy me-2 text-danger">
+            </i>
 
-            <div>
+            Duplicate Row Analysis
 
-                <h4 class="fw-semibold mb-1">
+        </h4>
 
-                    <i class="bi bi-copy me-2 text-danger"></i>
-
-                    Duplicate Row Analysis
-
-                </h4>
-
-                <p class="text-muted mb-0">
-
-                    {{ duplicates }} duplicate row(s) detected.
-
-                </p>
-
-            </div>
-
-        </div>
-
-
-        {% if duplicate_rows %}
-
-        <div class="table-responsive data-table-wrapper">
+        <div
+            class="table-responsive
+            data-table-wrapper mt-3">
 
             {{ duplicate_rows|safe }}
 
         </div>
-
-        {% endif %}
-
 
     </div>
 
@@ -1206,9 +1273,8 @@ Data Insight Pro | CSV Analytics Dashboard
 {% endif %}
 
 
-
 <!-- =====================================================
-     SUMMARY STATISTICS
+     SUMMARY
 ===================================================== -->
 
 {% if summary %}
@@ -1217,36 +1283,24 @@ Data Insight Pro | CSV Analytics Dashboard
 
     <div class="card-body p-4">
 
+        <h4>
 
-        <div class="section-heading mb-3">
+            <i
+                class="bi
+                bi-clipboard-data me-2 text-primary">
+            </i>
 
-            <div>
+            Summary Statistics
 
-                <h4 class="fw-semibold mb-1">
+        </h4>
 
-                    <i class="bi bi-clipboard-data me-2 text-primary"></i>
-
-                    Summary Statistics
-
-                </h4>
-
-                <p class="text-muted mb-0">
-
-                    Statistical overview of your dataset.
-
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="table-responsive data-table-wrapper">
+        <div
+            class="table-responsive
+            data-table-wrapper mt-3">
 
             {{ summary|safe }}
 
         </div>
-
 
     </div>
 
@@ -1255,9 +1309,8 @@ Data Insight Pro | CSV Analytics Dashboard
 {% endif %}
 
 
-
 <!-- =====================================================
-     CORRELATION HEATMAP
+     HEATMAP
 ===================================================== -->
 
 {% if heatmap %}
@@ -1266,28 +1319,23 @@ Data Insight Pro | CSV Analytics Dashboard
 
     <div class="card-body p-4">
 
+        <h4>
 
-        <div class="section-heading mb-3">
+            <i
+                class="bi
+                bi-grid-3x3-gap-fill me-2 text-danger">
+            </i>
 
-            <div>
+            Correlation Heatmap
 
-                <h4 class="fw-semibold mb-1">
+        </h4>
 
-                    <i class="bi bi-grid-3x3-gap-fill me-2 text-danger"></i>
 
-                    Correlation Heatmap
+        <p class="text-muted">
 
-                </h4>
+            Relationships between numeric variables.
 
-                <p class="text-muted mb-0">
-
-                    Explore relationships between numerical variables.
-
-                </p>
-
-            </div>
-
-        </div>
+        </p>
 
 
         <div class="heatmap-container text-center">
@@ -1295,10 +1343,9 @@ Data Insight Pro | CSV Analytics Dashboard
             <img
                 src="{{ heatmap }}"
                 class="img-fluid rounded"
-                alt="Dataset Correlation Heatmap">
+                alt="Correlation Heatmap">
 
         </div>
-
 
     </div>
 
