@@ -809,6 +809,282 @@ def prepare_dashboard_data(df):
 
     return dashboard
 
+# =========================================================
+# AUTOMATIC DASHBOARD GENERATOR
+# =========================================================
+
+def generate_automatic_dashboard(df):
+
+    charts = []
+
+    numeric_columns = (
+        df.select_dtypes(
+            include="number"
+        )
+        .columns
+        .tolist()
+    )
+
+    categorical_columns = (
+        df.select_dtypes(
+            exclude="number"
+        )
+        .columns
+        .tolist()
+    )
+
+    # =====================================================
+    # KPI VALUES
+    # =====================================================
+
+    total_rows = len(df)
+
+    total_columns = len(
+        df.columns
+    )
+
+    missing_values = int(
+        df.isnull()
+        .sum()
+        .sum()
+    )
+
+    duplicate_rows = int(
+        df.duplicated()
+        .sum()
+    )
+
+    # =====================================================
+    # CHART 1
+    # Numeric Distribution
+    # =====================================================
+
+    if numeric_columns:
+
+        column = numeric_columns[0]
+
+        try:
+
+            chart_df = df[
+                [column]
+            ].dropna()
+
+            fig = px.histogram(
+                chart_df,
+                x=column,
+                nbins=30,
+                title=(
+                    f"Distribution of {column}"
+                )
+            )
+
+            charts.append({
+                "title":
+                    f"Distribution of {column}",
+
+                "html":
+                    plot_to_html(fig)
+            })
+
+        except Exception as e:
+
+            print(
+                "Automatic chart 1 error:",
+                e
+            )
+
+    # =====================================================
+    # CHART 2
+    # Category vs Numeric
+    # =====================================================
+
+    if (
+        categorical_columns
+        and numeric_columns
+    ):
+
+        category = (
+            categorical_columns[0]
+        )
+
+        value = (
+            numeric_columns[0]
+        )
+
+        try:
+
+            grouped = (
+                df.groupby(
+                    category,
+                    dropna=False
+                )[value]
+                .sum()
+                .sort_values(
+                    ascending=False
+                )
+                .head(10)
+                .reset_index()
+            )
+
+            if not grouped.empty:
+
+                grouped[
+                    category
+                ] = (
+                    grouped[
+                        category
+                    ]
+                    .astype(str)
+                )
+
+                fig = px.bar(
+                    grouped,
+                    x=category,
+                    y=value,
+                    title=(
+                        f"{value} by {category}"
+                    )
+                )
+
+                charts.append({
+                    "title":
+                        f"{value} by {category}",
+
+                    "html":
+                        plot_to_html(fig)
+                })
+
+        except Exception as e:
+
+            print(
+                "Automatic chart 2 error:",
+                e
+            )
+
+    # =====================================================
+    # CHART 3
+    # Numeric Relationship
+    # =====================================================
+
+    if len(
+        numeric_columns
+    ) >= 2:
+
+        x_column = (
+            numeric_columns[0]
+        )
+
+        y_column = (
+            numeric_columns[1]
+        )
+
+        try:
+
+            chart_df = df[
+                [
+                    x_column,
+                    y_column
+                ]
+            ].dropna()
+
+            fig = px.scatter(
+                chart_df,
+                x=x_column,
+                y=y_column,
+                title=(
+                    f"{x_column} vs {y_column}"
+                )
+            )
+
+            charts.append({
+                "title":
+                    f"{x_column} vs {y_column}",
+
+                "html":
+                    plot_to_html(fig)
+            })
+
+        except Exception as e:
+
+            print(
+                "Automatic chart 3 error:",
+                e
+            )
+
+    # =====================================================
+    # CHART 4
+    # Top Categories
+    # =====================================================
+
+    if categorical_columns:
+
+        category = (
+            categorical_columns[0]
+        )
+
+        try:
+
+            counts = (
+                df[category]
+                .fillna("Missing")
+                .astype(str)
+                .value_counts()
+                .head(10)
+                .reset_index()
+            )
+
+            counts.columns = [
+                category,
+                "Count"
+            ]
+
+            if not counts.empty:
+
+                fig = px.bar(
+                    counts,
+                    x=category,
+                    y="Count",
+                    title=(
+                        f"Top {category} Categories"
+                    )
+                )
+
+                charts.append({
+                    "title":
+                        f"Top {category} Categories",
+
+                    "html":
+                        plot_to_html(fig)
+                })
+
+        except Exception as e:
+
+            print(
+                "Automatic chart 4 error:",
+                e
+            )
+
+    # =====================================================
+    # RETURN DASHBOARD
+    # =====================================================
+
+    return {
+
+        "total_rows":
+            total_rows,
+
+        "total_columns":
+            total_columns,
+
+        "missing_values":
+            missing_values,
+
+        "duplicate_rows":
+            duplicate_rows,
+
+        "charts":
+            charts
+    }
 
 # =========================================================
 # SEARCH DATAFRAME
@@ -2863,6 +3139,46 @@ def download_filtered():
         )
     )
 
+# =========================================================
+# AUTOMATIC DASHBOARD
+# =========================================================
+
+@app.route(
+    "/automatic-dashboard"
+)
+@login_required
+def automatic_dashboard():
+
+    df = (
+        load_filtered_dataframe()
+    )
+
+    if df is None:
+
+        flash(
+            "Please upload a dataset first.",
+            "warning"
+        )
+
+        return redirect(
+            url_for("index")
+        )
+
+    dashboard = (
+        generate_automatic_dashboard(
+            df
+        )
+    )
+
+    return render_template(
+        "automatic_dashboard.html",
+
+        dashboard=dashboard,
+
+        dataset_name=(
+            current_dataset_name()
+        )
+    )
 
 # =========================================================
 # ADMIN DASHBOARD
