@@ -9,24 +9,147 @@ Data Insight Pro | CSV Analytics Dashboard
 {% block content %}
 
 
+<style>
+    .product-hero {
+        background: linear-gradient(135deg, #eef5ff 0%, #ffffff 55%, #f5f9ff 100%);
+        border: 1px solid #dbe8ff;
+        border-radius: 24px;
+        padding: 42px 28px;
+        margin-bottom: 24px;
+    }
+    .product-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #e8f1ff;
+        color: #1264e8;
+        font-weight: 600;
+        font-size: .9rem;
+    }
+    .product-feature {
+        height: 100%;
+        border: 1px solid #e5ebf4;
+        border-radius: 16px;
+        padding: 20px;
+        background: rgba(255,255,255,.9);
+    }
+    .product-feature i {
+        font-size: 1.5rem;
+        color: #1264e8;
+    }
+    .sample-cta {
+        border-radius: 16px;
+        background: #f8fbff;
+        border: 1px dashed #9fc2ff;
+    }
+    .data-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .data-table-wrapper table {
+        width: 100%;
+        min-width: 620px;
+        margin-bottom: 0;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+    .data-table-wrapper th {
+        font-weight: 700;
+        white-space: nowrap;
+    }
+</style>
+
+
 <!-- =====================================================
-     HERO
+     PRODUCT HERO / LANDING STATE
 ===================================================== -->
 
-<section class="dashboard-header text-center">
+<section class="product-hero">
 
-    <div class="header-icon">
-        <i class="bi bi-bar-chart-line-fill"></i>
+    <div class="row align-items-center g-4">
+
+        <div class="col-lg-7">
+
+            <span class="product-badge">
+                <i class="bi bi-stars"></i>
+                CSV analytics made simple
+            </span>
+
+            <h1 class="fw-bold display-6 mt-3 mb-3">
+                Turn a CSV file into useful insights.
+            </h1>
+
+            <p class="lead text-muted mb-4">
+                Upload your dataset, clean data-quality issues,
+                explore statistics, build interactive charts and
+                discover patterns — all in one place.
+            </p>
+
+            <div class="d-flex flex-wrap gap-2">
+                <a href="#upload-dataset" class="btn btn-primary px-4">
+                    <i class="bi bi-cloud-arrow-up me-2"></i>
+                    Upload My CSV
+                </a>
+
+                <a href="{{ url_for('load_sample') }}" class="btn btn-outline-primary px-4">
+                    <i class="bi bi-play-circle me-2"></i>
+                    Try Sample Dataset
+                </a>
+            </div>
+
+        </div>
+
+        <div class="col-lg-5">
+
+            <div class="row g-3">
+
+                <div class="col-6">
+                    <div class="product-feature">
+                        <i class="bi bi-stars"></i>
+                        <h6 class="fw-bold mt-3">Smart Insights</h6>
+                        <p class="text-muted small mb-0">
+                            Automatic observations about data quality and relationships.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="product-feature">
+                        <i class="bi bi-bar-chart-line"></i>
+                        <h6 class="fw-bold mt-3">Interactive Charts</h6>
+                        <p class="text-muted small mb-0">
+                            Build Plotly visualizations from your filtered data.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="product-feature">
+                        <i class="bi bi-magic"></i>
+                        <h6 class="fw-bold mt-3">Data Cleaning</h6>
+                        <p class="text-muted small mb-0">
+                            Handle missing values and duplicate rows before analysis.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="product-feature">
+                        <i class="bi bi-download"></i>
+                        <h6 class="fw-bold mt-3">Export Results</h6>
+                        <p class="text-muted small mb-0">
+                            Download cleaned datasets as CSV or Excel files.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-
-    <h1 class="fw-bold">
-        Data Insight Pro
-    </h1>
-
-    <p class="text-muted">
-        Upload, clean, filter, analyze and visualize
-        your CSV datasets in one place.
-    </p>
 
 </section>
 
@@ -75,7 +198,7 @@ Data Insight Pro | CSV Analytics Dashboard
      UPLOAD
 ===================================================== -->
 
-<div class="card dashboard-section mb-4">
+<div class="card dashboard-section mb-4" id="upload-dataset">
 
     <div class="card-body p-4">
 
@@ -140,6 +263,17 @@ Data Insight Pro | CSV Analytics Dashboard
             </button>
 
         </form>
+
+        <div class="sample-cta mt-4 p-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div>
+                <div class="fw-semibold">Don't have a CSV ready?</div>
+                <div class="text-muted small">Load a built-in sales dataset and explore every feature instantly.</div>
+            </div>
+            <a href="{{ url_for('load_sample') }}" class="btn btn-outline-primary">
+                <i class="bi bi-play-circle me-2"></i>
+                Try Sample Dataset
+            </a>
+        </div>
 
     </div>
 
@@ -746,6 +880,73 @@ Data Insight Pro | CSV Analytics Dashboard
     </div>
 
 </div>
+
+
+<!-- =====================================================
+     CLEANING REPORT
+===================================================== -->
+
+{% if cleaning_report %}
+<div class="card dashboard-section mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h4 class="mb-1">
+                    <i class="bi bi-clipboard2-check me-2 text-success"></i>
+                    Data Cleaning Report
+                </h4>
+                <p class="text-muted mb-0">
+                    Before → after summary of the latest Smart Cleaning run.
+                </p>
+            </div>
+            <span class="badge text-bg-success p-2">
+                {{ cleaning_report.columns_changed }} column(s) changed
+            </span>
+        </div>
+
+        <div class="row g-3 mt-3">
+            <div class="col-md-3"><div class="cleaning-stat"><div><span class="cleaning-label">Rows</span><h3 class="mb-0">{{ cleaning_report.rows_before }} → {{ cleaning_report.rows_after }}</h3></div><div class="cleaning-icon"><i class="bi bi-table"></i></div></div></div>
+            <div class="col-md-3"><div class="cleaning-stat"><div><span class="cleaning-label">Missing Values</span><h3 class="mb-0">{{ cleaning_report.missing_before }} → {{ cleaning_report.missing_after }}</h3></div><div class="cleaning-icon"><i class="bi bi-exclamation-circle"></i></div></div></div>
+            <div class="col-md-3"><div class="cleaning-stat"><div><span class="cleaning-label">Duplicates Removed</span><h3 class="mb-0">{{ cleaning_report.duplicates_removed }}</h3></div><div class="cleaning-icon"><i class="bi bi-copy"></i></div></div></div>
+            <div class="col-md-3"><div class="cleaning-stat"><div><span class="cleaning-label">Values Standardized</span><h3 class="mb-0">{{ cleaning_report.standardized }}</h3></div><div class="cleaning-icon"><i class="bi bi-stars"></i></div></div></div>
+        </div>
+
+        {% if cleaning_report.missing_flagged > 0 %}
+        <div class="alert alert-warning mt-4 mb-3">
+            <i class="bi bi-shield-exclamation me-2"></i>
+            <strong>{{ cleaning_report.missing_flagged }} value(s) were preserved for review.</strong>
+            Data Insight Pro does not invent customer identifiers or dates when their correct values are unknown.
+        </div>
+        {% endif %}
+
+        <div class="table-responsive data-table-wrapper mt-3">
+            <table class="table table-bordered table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Column</th><th>Status</th><th>Missing Before</th><th>Missing After</th><th>Data Type</th><th>What Changed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cleaning_report.column_report %}
+                    <tr>
+                        <td><strong>{{ item.column }}</strong></td>
+                        <td>{% if item.status == "Changed" %}<span class="badge text-bg-success">Changed</span>{% else %}<span class="badge text-bg-secondary">No change</span>{% endif %}</td>
+                        <td>{{ item.before_missing }}</td>
+                        <td>{{ item.after_missing }}</td>
+                        <td><small>{{ item.before_dtype }}{% if item.before_dtype != item.after_dtype %} → {{ item.after_dtype }}{% endif %}</small></td>
+                        <td>{% if item.actions %}{% for action in item.actions %}<div>• {{ action }}</div>{% endfor %}{% else %}<span class="text-muted">No change required</span>{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="text-muted small mt-3 mb-0">
+            Review the report before downloading the cleaned CSV or Excel file.
+        </p>
+    </div>
+</div>
+{% endif %}
 
 
 <!-- =====================================================
