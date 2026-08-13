@@ -3,11 +3,14 @@
 
 {% block title %}
 Data Insight Pro | CSV Analytics Dashboard
+</div>
+
 {% endblock %}
 
 
 {% block content %}
 
+<div class="dashboard-shell">
 
 <style>
     .product-hero {
@@ -60,6 +63,121 @@ Data Insight Pro | CSV Analytics Dashboard
         white-space: nowrap;
     }
 </style>
+<style>
+    body {
+        background: #f4f7fb;
+    }
+    .dashboard-shell {
+        max-width: 1380px;
+        margin: 0 auto;
+    }
+    .product-hero {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #0f4cbd 0%, #2563eb 52%, #6d5dfc 100%);
+        border: 0;
+        color: #fff;
+        box-shadow: 0 18px 45px rgba(37, 99, 235, .18);
+    }
+    .product-hero:before, .product-hero:after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255,255,255,.08);
+        pointer-events: none;
+    }
+    .product-hero:before { width: 320px; height: 320px; right: -120px; top: -150px; }
+    .product-hero:after { width: 220px; height: 220px; right: 25%; bottom: -150px; }
+    .product-hero .text-muted, .product-hero p { color: rgba(255,255,255,.82) !important; }
+    .product-badge {
+        background: rgba(255,255,255,.14);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,.22);
+        backdrop-filter: blur(8px);
+    }
+    .hero-btn {
+        border-radius: 12px;
+        padding: 11px 18px;
+        font-weight: 700;
+    }
+    .hero-btn-light { background: #fff; color: #1454c5; border: 0; }
+    .hero-btn-ghost { color: #fff; border: 1px solid rgba(255,255,255,.5); background: rgba(255,255,255,.08); }
+    .product-feature {
+        border: 1px solid rgba(255,255,255,.18);
+        background: rgba(255,255,255,.10);
+        color: #fff;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 12px 25px rgba(0,0,0,.08);
+    }
+    .product-feature i { color: #fff; }
+    .dashboard-section, .card {
+        border: 1px solid #e6ebf3 !important;
+        box-shadow: 0 8px 28px rgba(24,39,75,.06);
+    }
+    .dashboard-section {
+        border-radius: 18px !important;
+        overflow: hidden;
+    }
+    .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 5px;
+    }
+    .section-icon {
+        width: 42px;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: #eef4ff;
+        color: #2563eb;
+        font-size: 1.15rem;
+    }
+    .kpi-card, .cleaning-stat {
+        border-radius: 16px !important;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .kpi-card:hover, .cleaning-stat:hover, .product-feature:hover {
+        transform: translateY(-2px);
+    }
+    .cleaning-stat {
+        background: linear-gradient(180deg,#fff,#f9fbff);
+        border: 1px solid #e7edf7;
+        box-shadow: 0 6px 18px rgba(24,39,75,.05);
+    }
+    .cleaning-icon {
+        width: 42px; height: 42px; border-radius: 12px;
+        display:flex; align-items:center; justify-content:center;
+        background:#edf4ff; color:#2563eb;
+    }
+    .sample-cta {
+        background: linear-gradient(135deg,#f7faff,#eef5ff);
+        border: 1px solid #d8e6ff;
+        box-shadow: inset 0 1px 0 #fff;
+    }
+    .btn { border-radius: 10px; font-weight: 600; }
+    .btn-primary { box-shadow: 0 6px 16px rgba(37,99,235,.18); }
+    .table { font-size: .92rem; }
+    .table thead th { background: #f7f9fc; color: #334155; }
+    .data-table-wrapper { border: 1px solid #e6ebf3; border-radius: 14px; }
+    .cleaning-report-card {
+        background: linear-gradient(180deg,#ffffff,#fbfdff);
+    }
+    .status-pill {
+        display:inline-flex; align-items:center; gap:6px;
+        border-radius:999px; padding:6px 10px; font-size:.78rem; font-weight:700;
+    }
+    .status-pill-success { background:#e9f9ef; color:#16803c; }
+    .status-pill-warning { background:#fff6df; color:#9a6700; }
+    .status-pill-muted { background:#eef2f7; color:#64748b; }
+    .mini-label { font-size:.78rem; color:#64748b; text-transform:uppercase; letter-spacing:.04em; font-weight:700; }
+    @media (max-width: 768px) {
+        .product-hero { padding: 30px 20px; }
+    }
+</style>
+
 
 
 <!-- =====================================================
@@ -88,12 +206,12 @@ Data Insight Pro | CSV Analytics Dashboard
             </p>
 
             <div class="d-flex flex-wrap gap-2">
-                <a href="#upload-dataset" class="btn btn-primary px-4">
+                <a href="#upload-dataset" class="btn hero-btn hero-btn-light px-4">
                     <i class="bi bi-cloud-arrow-up me-2"></i>
                     Upload My CSV
                 </a>
 
-                <a href="{{ url_for('load_sample') }}" class="btn btn-outline-primary px-4">
+                <a href="{{ url_for('load_sample') }}" class="btn hero-btn hero-btn-ghost px-4">
                     <i class="bi bi-play-circle me-2"></i>
                     Try Sample Dataset
                 </a>
@@ -807,7 +925,7 @@ Data Insight Pro | CSV Analytics Dashboard
                 <button class="btn btn-primary">
 
                     <i class="bi bi-magic me-2"></i>
-                    Fill Missing Values
+                    Smart Clean Dataset
 
                 </button>
 
@@ -883,6 +1001,30 @@ Data Insight Pro | CSV Analytics Dashboard
 
 
 <!-- =====================================================
+     DATA VERSION CONTROLS
+===================================================== -->
+
+<div class="sample-cta p-3 p-md-4 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <div class="mini-label mb-1">Safe data workflow</div>
+            <div class="fw-semibold">Your original upload is preserved.</div>
+            <div class="text-muted small">Smart Cleaning creates a separate cleaned copy, so you can always compare or restore your raw data.</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('download_original') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-file-earmark-arrow-down me-2"></i>Original CSV
+            </a>
+            <form method="POST" action="{{ url_for('restore_original') }}" onsubmit="return confirm('Restore the original uploaded dataset? Your cleaned version will be replaced.');">
+                <button class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Restore Original
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
      CLEANING REPORT
 ===================================================== -->
 
@@ -896,7 +1038,7 @@ Data Insight Pro | CSV Analytics Dashboard
                     Data Cleaning Report
                 </h4>
                 <p class="text-muted mb-0">
-                    Before → after summary of the latest Smart Cleaning run.
+                    A transparent before → after audit of what Data Insight Pro changed — and what it deliberately preserved.
                 </p>
             </div>
             <span class="badge text-bg-success p-2">

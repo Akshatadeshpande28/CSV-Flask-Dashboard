@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}
+Data Insight Pro | Turn CSV Data Into Insights
+{% endblock %}
+
+{% block content %}
+
+<style>
+    body { background:#f4f7fb; }
+    .landing-wrap { max-width:1280px; margin:0 auto; }
+    .landing-hero {
+        position:relative; overflow:hidden; border:0; border-radius:30px;
+        padding:72px 34px; color:#fff;
+        background:linear-gradient(135deg,#0f4cbd 0%,#2563eb 55%,#6d5dfc 100%);
+        box-shadow:0 22px 55px rgba(37,99,235,.22);
+    }
+    .landing-hero:before,.landing-hero:after {
+        content:""; position:absolute; border-radius:50%;
+        background:rgba(255,255,255,.08); pointer-events:none;
+    }
+    .landing-hero:before { width:360px;height:360px;right:-150px;top:-180px; }
+    .landing-hero:after { width:260px;height:260px;right:25%;bottom:-180px; }
+    .landing-content { position:relative; z-index:2; }
+    .landing-badge {
+        display:inline-flex;align-items:center;gap:8px;padding:8px 14px;
+        border-radius:999px;background:rgba(255,255,255,.13);
+        border:1px solid rgba(255,255,255,.22);font-weight:700;
+        backdrop-filter:blur(8px);
+    }
+    .landing-hero p { color:rgba(255,255,255,.84)!important; }
+    .hero-primary { background:#fff;color:#1454c5;border:0; }
+    .hero-secondary { background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.45); }
+    .hero-primary,.hero-secondary { border-radius:12px;font-weight:700;padding:12px 20px; }
+    .mock-dashboard {
+        position:relative; z-index:2; padding:18px; border-radius:22px;
+        background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22);
+        backdrop-filter:blur(12px); box-shadow:0 20px 35px rgba(0,0,0,.12);
+    }
+    .mock-top { height:10px;width:45%;background:rgba(255,255,255,.65);border-radius:99px;margin-bottom:16px; }
+    .mock-kpis { display:grid;grid-template-columns:repeat(2,1fr);gap:10px; }
+    .mock-kpi { padding:14px;border-radius:13px;background:rgba(255,255,255,.13); }
+    .mock-kpi span { display:block;font-size:.72rem;color:rgba(255,255,255,.7); }
+    .mock-kpi strong { font-size:1.3rem; }
+    .mock-chart { margin-top:12px;height:110px;border-radius:14px;background:rgba(255,255,255,.11);position:relative;overflow:hidden; }
+    .mock-chart:after { content:"";position:absolute;left:10%;right:10%;bottom:22px;height:55px;border-bottom:3px solid rgba(255,255,255,.75);transform:skewY(-12deg); }
+    .landing-feature { height:100%;border:1px solid #e4eaf3;border-radius:18px;padding:24px;background:#fff;box-shadow:0 8px 24px rgba(24,39,75,.05);transition:.2s; }
+    .landing-feature:hover { transform:translateY(-3px);box-shadow:0 14px 30px rgba(24,39,75,.09); }
+    .landing-feature i { font-size:1.65rem;color:#2563eb; }
+    .landing-step { border-radius:18px;background:#fff;border:1px solid #e5ebf4;padding:22px;height:100%;box-shadow:0 6px 18px rgba(24,39,75,.04); }
+    .step-number { width:36px;height:36px;border-radius:11px;background:#eaf2ff;color:#2563eb;display:inline-flex;align-items:center;justify-content:center;font-weight:800; }
+    .trust-strip { background:#fff;border:1px solid #e6ebf3;border-radius:18px;padding:18px 22px;box-shadow:0 6px 18px rgba(24,39,75,.04); }
+    .trust-item { color:#64748b;font-size:.9rem; }
+</style>
+
+<div class="landing-wrap">
+
+    <section class="landing-hero mb-5">
+        <div class="landing-content">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-7">
+                    <span class="landing-badge">
+                        <i class="bi bi-stars"></i>
+                        CSV analytics made simple
+                    </span>
+
+                    <h1 class="display-4 fw-bold mt-4 mb-3">
+                        Turn messy CSV files into clear insights.
+                    </h1>
+
+                    <p class="lead mb-4" style="max-width:720px;">
+                        Upload, clean, explore, visualize and export your data in one simple workspace — without building a dashboard from scratch.
+                    </p>
+
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{{ url_for('register') }}" class="btn hero-primary btn-lg">
+                            <i class="bi bi-person-plus me-2"></i>Create Free Account
+                        </a>
+                        <a href="{{ url_for('login') }}" class="btn hero-secondary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </a>
+                    </div>
+
+                    <div class="small mt-3" style="color:rgba(255,255,255,.72);">
+                        <i class="bi bi-check-circle me-1"></i>Built for quick analysis
+                        <span class="mx-2">•</span>
+                        <i class="bi bi-shield-check me-1"></i>User-specific datasets
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="mock-dashboard">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <strong>Data Insight Pro</strong>
+                            <span class="small" style="color:rgba(255,255,255,.7);">Live dashboard</span>
+                        </div>
+                        <div class="mock-top"></div>
+                        <div class="mock-kpis">
+                            <div class="mock-kpi"><span>Rows</span><strong>12,450</strong></div>
+                            <div class="mock-kpi"><span>Columns</span><strong>18</strong></div>
+                            <div class="mock-kpi"><span>Missing</span><strong>124</strong></div>
+                            <div class="mock-kpi"><span>Duplicates</span><strong>8</strong></div>
+                        </div>
+                        <div class="mock-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="trust-strip mb-5">
+        <div class="row g-3 text-center">
+            <div class="col-6 col-md-3 trust-item"><i class="bi bi-cloud-arrow-up me-2"></i>Upload CSV</div>
+            <div class="col-6 col-md-3 trust-item"><i class="bi bi-magic me-2"></i>Smart Cleaning</div>
+            <div class="col-6 col-md-3 trust-item"><i class="bi bi-bar-chart-line me-2"></i>Interactive EDA</div>
+            <div class="col-6 col-md-3 trust-item"><i class="bi bi-download me-2"></i>Export Results</div>
+        </div>
+    </div>
+
+    <div class="text-center mb-4">
+        <span class="badge rounded-pill text-bg-light border px-3 py-2">Everything in one workspace</span>
+        <h2 class="fw-bold mt-3">From raw CSV to analysis-ready data</h2>
+        <p class="text-muted mx-auto" style="max-width:720px;">Start with a dataset and let Data Insight Pro handle the repetitive parts while keeping your data workflow transparent.</p>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+            <div class="landing-feature">
+                <i class="bi bi-cloud-arrow-up"></i>
+                <h5 class="fw-bold mt-3">Upload & Preview</h5>
+                <p class="text-muted mb-0">Quickly inspect rows, columns, missing values, duplicates and data types.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="landing-feature">
+                <i class="bi bi-magic"></i>
+                <h5 class="fw-bold mt-3">Smart Cleaning</h5>
+                <p class="text-muted mb-0">Standardize common values, handle safe imputations and preserve uncertain identifiers.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="landing-feature">
+                <i class="bi bi-search-heart"></i>
+                <h5 class="fw-bold mt-3">Explore Automatically</h5>
+                <p class="text-muted mb-0">Use descriptive statistics, distributions, outlier analysis and relationship insights.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="landing-feature">
+                <i class="bi bi-bar-chart-line"></i>
+                <h5 class="fw-bold mt-3">Visualize & Export</h5>
+                <p class="text-muted mb-0">Create interactive charts and download cleaned data in CSV or Excel format.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">How it works</h2>
+        <p class="text-muted">Three simple steps to start exploring.</p>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="landing-step">
+                <span class="step-number">1</span>
+                <h5 class="fw-bold mt-3">Upload</h5>
+                <p class="text-muted mb-0">Upload your CSV or sign in and try the built-in sample dataset.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="landing-step">
+                <span class="step-number">2</span>
+                <h5 class="fw-bold mt-3">Clean & Explore</h5>
+                <p class="text-muted mb-0">Review data quality, run Smart Cleaning, filter records and perform EDA.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="landing-step">
+                <span class="step-number">3</span>
+                <h5 class="fw-bold mt-3">Visualize & Export</h5>
+                <p class="text-muted mb-0">Create interactive charts and download the cleaned dataset for further work.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center py-4 pb-5">
+        <h3 class="fw-bold">Ready to explore your data?</h3>
+        <p class="text-muted mb-3">Create your account and turn your next CSV into a useful analysis.</p>
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4">
+            <i class="bi bi-rocket-takeoff me-2"></i>Get Started
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}
