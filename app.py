@@ -483,235 +483,53 @@ def generate_ai_insights(df):
     return " ".join(insights)
 
 
-# =========================================================
-# PREPARE DASHBOARD
-# =========================================================
-
-def prepare_dashboard_data(df):
-
-    dashboard = {}
-
-    dashboard["columns"] = (
-        df.columns.tolist()
-    )
-
-    dashboard["rows"] = len(df)
-
-    dashboard["cols"] = len(
-        df.columns
-    )
-
-    dashboard["missing"] = int(
-        df.isnull().sum().sum()
-    )
-
-    dashboard["duplicates"] = int(
-        df.duplicated().sum()
-    )
-
-    dashboard["memory"] = round(
-        df.memory_usage(
-            deep=True
-        ).sum() / 1024,
-        2
-    )
-
-    numeric_columns = (
-        df.select_dtypes(
-            include="number"
-        )
-        .columns
-        .tolist()
-    )
-
-    categorical_columns = (
-        df.select_dtypes(
-            exclude="number"
-        )
-        .columns
-        .tolist()
-    )
-
-    dashboard["numeric_count"] = len(
-        numeric_columns
-    )
-
-    dashboard["categorical_count"] = len(
-        categorical_columns
-    )
-
-    dashboard["numeric_columns"] = (
-        numeric_columns
-    )
-
-    dashboard["categorical_columns"] = (
-        categorical_columns
-    )
-
-    dashboard["preview"] = (
-        df.head(50)
-        .to_html(
-            classes=(
-                "table table-bordered "
-                "table-hover table-striped"
-            ),
-            index=False,
-            border=0
-        )
-    )
-
-    try:
-
-        summary_df = (
-            df.describe(
-                include="all"
-            )
-            .fillna("")
-        )
-
-        dashboard["summary"] = (
-            summary_df.to_html(
-                classes=(
-                    "table table-striped "
-                    "table-hover"
-                ),
-                border=0
-            )
-        )
-
-    except Exception:
-
-        dashboard["summary"] = None
-
-    missing_counts = (
-        df.isnull().sum()
-    )
-
-    if len(df) > 0:
-
-        missing_percentage = (
-            missing_counts
-            / len(df)
-            * 100
-        ).round(2)
-
-    else:
-
-        missing_percentage = pd.Series(
-            0,
-            index=df.columns
-        )
-
-    missing_df = pd.DataFrame(
-        {
-            "Column": df.columns,
-
-            "Missing Values":
-                missing_counts.values,
-
-            "Missing Percentage (%)":
-                missing_percentage.values
-        }
-    )
-
-    missing_df = (
-        missing_df
-        .sort_values(
-            "Missing Values",
-            ascending=False
-        )
-    )
-
-    dashboard["missing_table"] = (
-        missing_df.to_html(
-            classes=(
-                "table table-striped "
-                "table-hover table-sm align-middle"
-            ),
-            index=False,
-            border=0
-        )
-    )
-
-    dashboard["duplicate_rows"] = None
-
-    if dashboard["duplicates"] > 0:
-
-        duplicate_df = (
-            df[df.duplicated()]
-            .head(20)
-        )
-
-        dashboard["duplicate_rows"] = (
-            duplicate_df.to_html(
-                classes=(
-                    "table table-striped "
-                    "table-hover"
-                ),
-                index=False,
-                border=0
-            )
-        )
-
-    dashboard["ai_insights"] = (
-        generate_ai_insights(df)
-    )
+    # =========================================================
+    # CORRELATION HEATMAP
+    # =========================================================
 
     dashboard["heatmap"] = None
 
-    numeric_df = df.select_dtypes(
-        include="number"
-    )
+    try:
+        numeric_df = df.select_dtypes(include="number")
 
-    if len(numeric_df.columns) >= 2:
+        if len(numeric_df.columns) >= 2:
 
-        correlation_matrix = (
-            numeric_df.corr()
+            correlation_matrix = numeric_df.corr()
+
+            # Use Plotly instead of saving a Matplotlib image.
+            heatmap_fig = px.imshow(
+                correlation_matrix,
+                text_auto=".2f",
+                aspect="auto",
+                title="Correlation Heatmap",
+                color_continuous_scale="RdBu_r"
+            )
+
+            heatmap_fig.update_layout(
+                height=500,
+                margin=dict(
+                    l=40,
+                    r=40,
+                    t=70,
+                    b=40
+                )
+            )
+
+            dashboard["heatmap"] = pio.to_html(
+                heatmap_fig,
+                full_html=False,
+                config={
+                    "responsive": True,
+                    "displaylogo": False
+                }
+            )
+
+    except Exception as heatmap_error:
+        print(
+            "HEATMAP ERROR:",
+            repr(heatmap_error)
         )
-
-        plt.figure(
-            figsize=(10, 7)
-        )
-
-        sns.heatmap(
-            correlation_matrix,
-            annot=True,
-            cmap="RdYlBu",
-            linewidths=0.5,
-            fmt=".2f"
-        )
-
-        plt.title(
-            "Correlation Heatmap",
-            fontsize=14
-        )
-
-        plt.tight_layout()
-
-        # Each user gets their own heatmap.
-        heatmap_filename = (
-            f"heatmap_user_{current_user.id}.png"
-        )
-
-        heatmap_path = os.path.join(
-            STATIC_FOLDER,
-            heatmap_filename
-        )
-
-        plt.savefig(
-            heatmap_path,
-            dpi=120,
-            bbox_inches="tight"
-        )
-
-        plt.close()
-
-        dashboard["heatmap"] = (
-            "/static/"
-            + heatmap_filename
-        )
-
-    return dashboard
+        dashboard["heatmap"] = None
 
 
 # =========================================================
@@ -1769,14 +1587,22 @@ def index():
         "duplicate_rows": None
     }
 
-    if df_global is not None:
+       if df_global is not None:
+        try:
+            dashboard = prepare_dashboard_data(df_global)
+        except Exception as dashboard_error:
+            import traceback
 
-        dashboard = (
-            prepare_dashboard_data(
-                df_global
+            print("=" * 80)
+            print("DASHBOARD PREPARATION ERROR")
+            print(repr(dashboard_error))
+            traceback.print_exc()
+            print("=" * 80)
+
+            error = (
+                "The dataset was uploaded, but the dashboard "
+                "could not be prepared. Please check the server logs."
             )
-        )
-
     original_rows = None
     filtered_rows = None
     filtered_preview = None
@@ -2735,6 +2561,28 @@ with app.app_context():
 # RUN APP
 # =========================================================
 
+# =========================================================
+# GLOBAL ERROR HANDLER - DEBUGGING
+# =========================================================
+
+@app.errorhandler(Exception)
+def handle_unexpected_error(error):
+
+    import traceback
+
+    print("\n" + "=" * 80)
+    print("DATA INSIGHT PRO - INTERNAL ERROR")
+    print("=" * 80)
+    print("ERROR:", repr(error))
+    print("TRACEBACK:")
+    traceback.print_exc()
+    print("=" * 80 + "\n")
+
+    return (
+        "Data Insight Pro encountered an internal error. "
+        "Please check the server logs.",
+        500
+    )
 if __name__ == "__main__":
 
     port = int(

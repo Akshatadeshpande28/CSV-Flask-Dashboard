@@ -1924,8 +1924,11 @@ Data Insight Pro | CSV Analytics Dashboard
 
         <div class="heatmap-container text-center">
 
-            <img
-                src="{{ heatmap }}"
+           {% if heatmap %}
+    <div class="heatmap-container">
+        {{ heatmap|safe }}
+    </div>
+{% endif %}
                 class="img-fluid rounded"
                 alt="Correlation Heatmap">
 
