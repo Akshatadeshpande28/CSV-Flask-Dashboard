@@ -2400,6 +2400,52 @@ def download_original():
         as_attachment=True,
         download_name=f"{name}_original.csv"
     )
+
+# =========================================================
+# RESTORE ORIGINAL DATASET
+# =========================================================
+
+@app.route(
+    "/restore-original",
+    methods=["POST"]
+)
+@login_required
+def restore_original():
+
+    original_path = get_original_path()
+
+    if not os.path.exists(original_path):
+        flash(
+            "No original dataset is available to restore.",
+            "warning"
+        )
+        return redirect(url_for("index"))
+
+    try:
+        df = pd.read_csv(original_path)
+
+        save_filtered_dataframe(df)
+
+        flash(
+            "Original dataset restored successfully.",
+            "success"
+        )
+
+    except Exception as e:
+
+        print(
+            "RESTORE ORIGINAL ERROR:",
+            repr(e)
+        )
+
+        flash(
+            "Could not restore the original dataset.",
+            "danger"
+        )
+
+    return redirect(
+        url_for("index")
+    )
 @app.route("/download-csv")
 @login_required
 def download_csv():
