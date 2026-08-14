@@ -2369,6 +2369,37 @@ def fill_missing():
 
 # =========================================================
 
+@app.route("/download-original")
+@login_required
+def download_original():
+
+    df = load_original_dataframe()
+
+    if df is None:
+        flash(
+            "Please upload a dataset first.",
+            "warning"
+        )
+        return redirect(url_for("index"))
+
+    buffer = BytesIO()
+
+    buffer.write(
+        df.to_csv(index=False).encode("utf-8")
+    )
+
+    buffer.seek(0)
+
+    name = os.path.splitext(
+        current_dataset_name()
+    )[0]
+
+    return send_file(
+        buffer,
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name=f"{name}_original.csv"
+    )
 @app.route("/download-csv")
 @login_required
 def download_csv():
