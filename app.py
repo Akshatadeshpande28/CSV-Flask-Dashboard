@@ -1587,7 +1587,7 @@ def index():
         "duplicate_rows": None
     }
 
-       if df_global is not None:
+    if df_global is not None:
         try:
             dashboard = prepare_dashboard_data(df_global)
         except Exception as dashboard_error:
