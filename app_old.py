@@ -483,86 +483,36 @@ def generate_ai_insights(df):
     return " ".join(insights)
 
 
-# =========================================================
-# DASHBOARD DATA PREPARATION
-# =========================================================
+    # =========================================================
+    # CORRELATION HEATMAP
+    # =========================================================
 
-def prepare_dashboard_data(df):
-    """Prepare all dashboard values and charts from a dataframe."""
-    dashboard = {
-        "summary": None,
-        "preview": None,
-        "columns": None,
-        "heatmap": None,
-        "ai_insights": None,
-        "rows": len(df),
-        "cols": len(df.columns),
-        "missing": int(df.isnull().sum().sum()),
-        "duplicates": int(df.duplicated().sum()),
-        "memory": f"{df.memory_usage(deep=True).sum() / 1024:.1f} KB",
-        "numeric_count": 0,
-        "categorical_count": 0,
-        "numeric_columns": [],
-        "categorical_columns": [],
-        "missing_table": None,
-        "duplicate_rows": None,
-    }
+    dashboard["heatmap"] = None
 
-    numeric_df = df.select_dtypes(include="number")
-    categorical_df = df.select_dtypes(exclude="number")
+    try:
+        numeric_df = df.select_dtypes(include="number")
 
-    dashboard["numeric_count"] = len(numeric_df.columns)
-    dashboard["categorical_count"] = len(categorical_df.columns)
-    dashboard["numeric_columns"] = list(numeric_df.columns)
-    dashboard["categorical_columns"] = list(categorical_df.columns)
+        if len(numeric_df.columns) >= 2:
 
-    dashboard["preview"] = df.head(10).to_html(
-        classes="table table-bordered table-hover table-striped",
-        index=False,
-        border=0,
-    )
-
-    dashboard["columns"] = df.dtypes.astype(str).to_dict()
-
-    missing_df = (
-        df.isnull()
-        .sum()
-        .reset_index()
-    )
-    missing_df.columns = ["Column", "Missing"]
-    missing_df = missing_df[missing_df["Missing"] > 0]
-
-    if not missing_df.empty:
-        dashboard["missing_table"] = missing_df.to_html(
-            classes="table table-bordered table-hover table-striped",
-            index=False,
-            border=0,
-        )
-
-    duplicate_df = df[df.duplicated(keep=False)]
-    if not duplicate_df.empty:
-        dashboard["duplicate_rows"] = duplicate_df.head(50).to_html(
-            classes="table table-bordered table-hover table-striped",
-            index=False,
-            border=0,
-        )
-
-    # Correlation heatmap
-    if len(numeric_df.columns) >= 2:
-        try:
             correlation_matrix = numeric_df.corr()
 
+            # Use Plotly instead of saving a Matplotlib image.
             heatmap_fig = px.imshow(
                 correlation_matrix,
                 text_auto=".2f",
                 aspect="auto",
                 title="Correlation Heatmap",
-                color_continuous_scale="RdBu_r",
+                color_continuous_scale="RdBu_r"
             )
 
             heatmap_fig.update_layout(
                 height=500,
-                margin=dict(l=40, r=40, t=70, b=40),
+                margin=dict(
+                    l=40,
+                    r=40,
+                    t=70,
+                    b=40
+                )
             )
 
             dashboard["heatmap"] = pio.to_html(
@@ -570,19 +520,16 @@ def prepare_dashboard_data(df):
                 full_html=False,
                 config={
                     "responsive": True,
-                    "displaylogo": False,
-                },
+                    "displaylogo": False
+                }
             )
-        except Exception as heatmap_error:
-            print("HEATMAP ERROR:", repr(heatmap_error))
 
-    dashboard["ai_insights"] = generate_ai_insights(df)
-
-    dashboard["summary"] = (
-        f"Dataset contains {len(df):,} rows and {len(df.columns):,} columns."
-    )
-
-    return dashboard
+    except Exception as heatmap_error:
+        print(
+            "HEATMAP ERROR:",
+            repr(heatmap_error)
+        )
+        dashboard["heatmap"] = None
 
 
 # =========================================================
@@ -2561,14 +2508,6 @@ def admin():
         total_logins=total_logins
     )
 
-
-# =========================================================
-# FAVICON
-# =========================================================
-
-@app.route("/favicon.ico")
-def favicon():
-    return "", 204
 
 # =========================================================
 # 403

@@ -1,0 +1,42 @@
+Customer_ID,Customer_Name,Email,City,Age,Gender,Order_Date,Product,Category,Amount,Order_Status
+C001,Aarav Sharma,aarav.sharma@gmail.com,Hyderabad,25.0,Male,2026-01-05,Laptop,Electronics,55000,Completed
+C002,Priya Reddy,priya.reddy@gmail.com,Hyderabad,29.0,Female ,05/01/2026,Smartphone,Electronics,32000,completed
+C003,Rahul Kumar,rahul.kumar@gmail.com,Bangalore,31.0,M,2026/01/07,Headphones,Electronics,2500,Delivered
+C004,Sneha Patel,sneha.patel@gmail.com,Mumbai,,Female,08-Jan-2026,Office Chair,Furniture,8500,Pending
+C005,Vikram Rao,vikram.rao@gmail.com,Bengaluru,27.0,Male,2026-01-10,Keyboard,Electronics,,Completed
+C006,Ananya Singh,ananya.singh@gmail.com,Hyderabad,24.0,F,10/01/26,Mouse,Electronics,1200,completed
+C007,Kiran Mehta,kiran.mehta@gmail.com,Pune,35.0,Male,2026-01-12,Monitor,Electronics,14500,Cancelled
+C008,Meera Iyer,,Chennai,28.0,Female,12-Jan-2026,Desk,Furniture,7000,Delivered
+C009,Rohan Verma,rohan.verma@gmail.com,Delhi,30.0,Male,2026-01-14,Backpack,Accessories,1800,Delivered
+C010,Neha Gupta,neha.gupta@gmail.com,Mumbai,26.0,Female,2026-01-15,USB Cable,Accessories,499,Completed
+C011,Arjun Nair,arjun.nair@gmail.com,Bangalore,33.0,Male,15/01/2026,Webcam,Electronics,3200, Pending 
+C012,Divya Joshi,divya.joshi@gmail.com,Hyderabad,27.0,Female,2026-01-17,Printer,Electronics,12500,Delivered
+C013,Sanjay Shah,sanjay.shah@gmail.com,Ahmedabad,40.0,Male,18-Jan-2026,Desk Lamp,Furniture,1500,Completed
+C014,Pooja Kulkarni,pooja.kulkarni@gmail.com,Pune,,Female,2026-01-19,Notebook,Stationery,250,Delivered
+C015,Manish Yadav,manish.yadav@gmail.com,Delhi,32.0,Male,20/01/2026,Office Chair,Furniture,8500,pending
+C016,Riya Kapoor,riya.kapoor@gmail.com,Mumbai,23.0,Female,2026-01-21,Tablet,Electronics,28000,Completed
+C017,Aditya Bose,aditya.bose@gmail.com,Kolkata,36.0,Male,22-Jan-2026,Keyboard,Electronics,"1,800",Delivered
+C018,Ishita Das,ishita.das@gmail.com,Kolkata,25.0,Female,2026/01/23,Mouse,Electronics,1200,Completed
+C019,Nikhil Jain,nikhil.jain@gmail.com,Jaipur,29.0,Male,24/01/2026,Backpack,Accessories,1800,Cancelled
+C020,Kavya Menon,kavya.menon@gmail.com,Chennai,31.0,Female,2026-01-25,Monitor,Electronics,14500,Delivered
+C021,Aarav Sharma,aarav.sharma@gmail.com,Hyderabad,25.0,Male,2026-01-05,Laptop,Electronics,55000,Completed
+C006,Ananya Singh,ananya.singh@gmail.com,Hyderabad,24.0,F,10/01/26,Mouse,Electronics,1200,completed
+C022,Suresh R,suresh.r@gmail.com,Hyderbad,38.0,Male,26-Jan-2026,Laptop,Electronics,55000,Completed
+C023,Lakshmi Devi,lakshmi.devi@gmail.com,Bangalore,27.0,Female,,Smartphone,Electronics,32000,Delivered
+C024,Vivek Mishra,vivek.mishra@gmail.com,Delhi,34.0,Male,2026-01-28,notebook,Electronics,12500,DELIVERED
+C025,Nandini Rao,nandini.rao@gmail.com,Mumbai,26.0,Female,29/01/2026,Notebook,Stationery,250,Completed
+C026,Harish Kumar,harish.kumar@gmail.com,Pune,42.0,Male,2026-01-30,Desk,Furniture,7000,Completed
+C027,Swati Agarwal,swati.agarwal@gmail.com,Chennai,30.0,Female,31-Jan-2026,Desk Lamp,Furniture,1500,Pending
+C028,Amit Kulkarni,amit.kulkarni@gmail.com,Bengaluru,,Male,2026-02-01,Webcam,Electronics,3200,Delivered
+C029,Sonia Roy,sonia.roy@gmail.com,Kolkata,28.0,Female,02/02/2026,Tablet,Electronics,28000,Completed
+C030,Rajesh Iyer,rajesh.iyer@gmail.com,Chennai,39.0,Male,2026-02-03,Headphones,Electronics,2500,Cancelled
+C031,Tanvi Shah,tanvi.shah@gmail.com,Ahmedabad,24.0,Female,04-Feb-2026,USB Cable,Accessories,,Completed
+C032,Mohit Verma,mohit.verma@gmail.com,Delhi,37.0,Male,2026/02/05,Monitor,Electronics,14500,Pending
+C033,Pallavi N,pallavi.n@gmail.com,Hyderabad,29.0,Female,06/02/26,Keyboard,Electronics,1800,Delivered
+C034,Rakesh Gupta,rakesh.gupta@gmail.com,Mumbai,41.0,Male,2026-02-07,Office Chair,Furniture,8500,completed
+C035,Ayesha Khan,ayesha.khan@gmail.com,Pune,27.0,Female,08-Feb-2026,Backpack,Accessories,1800,Delivered
+C036,Deepak Joshi,deepak.joshi@gmail.com,Bangalore,35.0,Male,2026-02-09,Printer,Electronics,12500,Completed
+C037,Shreya Patil,shreya.patil@gmail.com,Pune,26.0,Female,10/02/2026,Laptop,Electronics,55000,Delivered
+C038,Naveen Rao,naveen.rao@gmail.com,Hyderabad,33.0,Male,2026-02-11,Smartphone,Electronics,32000,Pending
+C039,Aditi Sen,aditi.sen@gmail.com,Kolkata,25.0,Female,12-Feb-2026,Notebook,Stationery,250,Delivered
+C040,Ramesh B,ramesh.b@gmail.com,Bangalore,45.0,Male,2026-02-13,Desk,Furniture,7000,Completed
